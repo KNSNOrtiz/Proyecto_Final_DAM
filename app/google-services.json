@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "899811946479",
+    "project_id": "my-animection",
+    "storage_bucket": "my-animection.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:899811946479:android:cd02f114469250cb06d01a",
+        "android_client_info": {
+          "package_name": "com.example.myanimection"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "899811946479-i2448nm7t2q5c6ioeej1okqj1cb3bd2o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAl0Clj1ojwWsx-HNFDwa5m88q_A_ooqLk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "899811946479-i2448nm7t2q5c6ioeej1okqj1cb3bd2o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
