@@ -15,6 +15,13 @@
         android:theme="@style/Theme.MyAnimection"
         tools:targetApi="31">
         <activity
+            android:name=".activities.PasswordRecoverActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".activities.SignupActivity"
             android:exported="false">
             <meta-data

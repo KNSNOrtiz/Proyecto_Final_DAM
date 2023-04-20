@@ -7,24 +7,42 @@
     android:background="@drawable/background1"
     tools:context=".activities.SignupActivity">
 
+    <ImageButton
+        android:id="@+id/btnViewPasswordSignUp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="45dp"
+        android:layout_marginBottom="45dp"
+        android:backgroundTint="#00FFFFFF"
+        app:layout_constraintBottom_toTopOf="@+id/txtConfirmPasswordSignUp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.954"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtEmailSignUp"
+        app:layout_constraintVertical_bias="0.857"
+        app:srcCompat="@android:drawable/ic_menu_view" />
+
     <EditText
         android:id="@+id/txtConfirmPasswordSignUp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
+        android:layout_marginEnd="70dp"
+        android:background="@drawable/roundedittext"
         android:ems="10"
         android:fontFamily="@font/roboto"
-        android:hint="Contraseña"
+        android:hint="Repetir contraseña"
         android:inputType="textPassword"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp"
         android:textColor="@color/white"
-        android:textColorHint="@color/blue_cornflower"
+        android:textColorHint="@color/blue_dark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView14"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.031" />
 
     <TextView
         android:id="@+id/textView14"
@@ -47,18 +65,22 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:layout_marginEnd="32dp"
+        android:background="@drawable/roundedittext"
         android:ems="10"
         android:fontFamily="@font/roboto"
         android:hint="mario@gmail.com"
         android:inputType="textEmailAddress"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp"
         android:textColor="@color/white"
-        android:textColorHint="@color/blue_cornflower"
+        android:textColorHint="@color/blue_dark"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView12"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.02" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnSignup"
@@ -100,18 +122,22 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
+        android:autoText="false"
+        android:background="@drawable/roundedittext"
         android:ems="10"
         android:fontFamily="@font/roboto"
-        android:hint="Contraseña (Mín. 6 caracteres)"
+        android:hint="Contraseña"
         android:inputType="textPassword"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp"
         android:textColor="@color/white"
-        android:textColorHint="@color/blue_cornflower"
+        android:textColorHint="@color/blue_dark"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnViewPasswordSignUp"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView10"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.031" />
 
     <TextView
         android:id="@+id/textView12"
@@ -148,7 +174,7 @@
         android:shadowColor="@color/black"
         android:shadowRadius="2"
         android:text="Registro con email"
-        android:textColor="@color/blue_greenish"
+        android:textColor="@color/white"
         android:textColorLink="@color/white"
         android:textSize="34sp"
         android:textStyle="bold"
