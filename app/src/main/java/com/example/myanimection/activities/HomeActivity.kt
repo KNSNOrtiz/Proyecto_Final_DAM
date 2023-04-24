@@ -34,7 +34,7 @@ class HomeActivity : AppCompatActivity() {
         val refDoc = db.collection("test").document("hola-mundo")
 
         //  Acciones dependiendo de si se conecta o no.
-        txtWelcome.text = "¡Bienvenido/a, ${user?.email}"
+        txtWelcome.text = "¡Bienvenido/a, ${user?.email}!"
 
 
         refTest.addOnSuccessListener {
