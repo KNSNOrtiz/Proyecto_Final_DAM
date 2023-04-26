@@ -1,0 +1,12 @@
+query SingleAnime {
+    Media(type: ANIME) {
+        title {
+            romaji
+            english
+            native
+        }
+        coverImage {
+            large
+        }
+    }
+}

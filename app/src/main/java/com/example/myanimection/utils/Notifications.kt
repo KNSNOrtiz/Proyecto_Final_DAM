@@ -5,9 +5,11 @@ import android.content.Context
 import android.widget.Toast
 import com.afollestad.materialdialogs.DialogCallback
 import com.afollestad.materialdialogs.MaterialDialog
-import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener
 
 object Notifications : Application() {
+
+    val ANILIST_HOST = "https://graphql.anilist.co"
+
     fun shortToast(context : Context, message : String){
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }

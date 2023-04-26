@@ -9,12 +9,18 @@ import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.myanimection.R
+import com.example.myanimection.adapters.RecyclerHomeAnimeAdapter
+import com.example.myanimection.controllers.AnimeMediaController
+import com.example.myanimection.models.AnimeMedia
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.ktx.app
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class HomeActivity : AppCompatActivity() {
 
@@ -23,8 +29,17 @@ class HomeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         var txtWelcome : TextView = findViewById(R.id.txtWelcome)
+        val rvAnimeHome: RecyclerView = findViewById(R.id.rvAnimeHome)
         val btnRead : Button = findViewById(R.id.btnRead)
         val btnUpdate : Button = findViewById(R.id.btnUpdate)
+        val animeMediaController = AnimeMediaController()
+        val animeList: Array<AnimeMedia>
+        runBlocking { animeMediaController.getSingleAnime()  }.also {
+            animeList = arrayOf(it)
+            val rvAnimeHomeAnimeAdapter = RecyclerHomeAnimeAdapter(animeList)
+            rvAnimeHome.layoutManager = GridLayoutManager(this, rvAnimeHomeAnimeAdapter.itemCount)
+            rvAnimeHome.adapter = rvAnimeHomeAnimeAdapter
+        }
 
 
         //  FIREBASE
