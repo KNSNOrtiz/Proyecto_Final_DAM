@@ -14,4 +14,5 @@
     <color name="blue_greenish">#48a7fe</color>
     <color name="jade">#00A36C</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="disabled_gray">#D1CECE</color>
 </resources>

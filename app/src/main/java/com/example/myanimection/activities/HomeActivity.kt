@@ -1,6 +1,5 @@
 package com.example.myanimection.activities
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -8,77 +7,97 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.apollographql.apollo3.api.Optional
 import com.example.myanimection.R
 import com.example.myanimection.adapters.RecyclerHomeAnimeAdapter
 import com.example.myanimection.controllers.AnimeMediaController
 import com.example.myanimection.models.AnimeMedia
+import com.example.myanimection.repositories.AnimeMediaRepository
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class HomeActivity : AppCompatActivity() {
 
+    private val animeMediaController = AnimeMediaController(AnimeMediaRepository())
+    private var animeList = ArrayList<AnimeMedia?>()
+    private var currentPage = 1
+    private var totalPages = 0
+    private var nextPage = false
+
+    private lateinit var rvAnimeHome: RecyclerView
+    private lateinit var txtCurrentPage: TextView
+    private lateinit var btnNextPage: Button
+    private lateinit var btnPreviousPage: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_home)
 
-        var txtWelcome : TextView = findViewById(R.id.txtWelcome)
-        val rvAnimeHome: RecyclerView = findViewById(R.id.rvAnimeHome)
-        val btnRead : Button = findViewById(R.id.btnRead)
-        val btnUpdate : Button = findViewById(R.id.btnUpdate)
-        val animeMediaController = AnimeMediaController()
-        val animeList: Array<AnimeMedia>
-        runBlocking { animeMediaController.getSingleAnime()  }.also {
-            animeList = arrayOf(it)
-            val rvAnimeHomeAnimeAdapter = RecyclerHomeAnimeAdapter(animeList)
-            rvAnimeHome.layoutManager = GridLayoutManager(this, rvAnimeHomeAnimeAdapter.itemCount)
-            rvAnimeHome.adapter = rvAnimeHomeAnimeAdapter
-        }
-
-
-        //  FIREBASE
+        rvAnimeHome = findViewById(R.id.rvAnimeHome)
+        txtCurrentPage = findViewById(R.id.txtCurrentPageHome)
+        btnNextPage = findViewById(R.id.btnNextPageHome)
+        btnPreviousPage = findViewById(R.id.btnPreviousPageHome)
+        //  FIREBASE AUTHENTICATION
         val user = FirebaseAuth.getInstance().currentUser
-        val db = Firebase.firestore   //  Referencia a la DB.
-        val refTest = db.collection("test").get()   //  Referencia a la colección.
-        val refDoc = db.collection("test").document("hola-mundo")
+        Log.d("Test","¡Bienvenido/a, ${user?.email}!" )
 
-        //  Acciones dependiendo de si se conecta o no.
-        txtWelcome.text = "¡Bienvenido/a, ${user?.email}!"
-
-
-        refTest.addOnSuccessListener {
-            Toast.makeText(this, "Conectado a la DB", Toast.LENGTH_SHORT).show()
-        }.addOnFailureListener {
-            Toast.makeText(this, "Error al conectar a la BD",Toast.LENGTH_SHORT).show()
+        try{
+            launchPageQuery()
+        } catch (ex: RuntimeException){
+            Log.d("NOT FOUND", "Animes no encontrados.")
         }
 
-        btnRead.setOnClickListener {
-           refTest.addOnSuccessListener { result ->
-               for (document in result){
-                   Log.d("DOCUMENTO", "Documento encontrado")
-                   txtWelcome.setText(document.data.getValue("saludo").toString() + "\n" + document.data.getValue("despedida").toString())
-               }
-            }
-            refTest.addOnFailureListener {
-                Log.d("ERROR DE LECTURA", "No se han podido leer los documentos.")
-            }
+        btnNextPage.setOnClickListener {
+            currentPage++
+            launchPageQuery()
+        }
+        btnPreviousPage.setOnClickListener {
+            currentPage--
+            launchPageQuery()
         }
 
-        btnUpdate.setOnClickListener {
-            //  Datos que se van a insertar en el documento "hola-mundo" de la colección.
-            refDoc.update("despedida", "Adios mundo cruel").addOnFailureListener {
-                Toast.makeText(this, "No se ha podido editar el campo", Toast.LENGTH_SHORT)
-            }.addOnSuccessListener {
-                Toast.makeText(this, "Se ha añadido el campo!", Toast.LENGTH_SHORT)
+
+    }
+    //  Lanzamiento de corutina en un hilo de lectura/escritura.
+     private fun launchPageQuery() = lifecycleScope.launch(Dispatchers.IO) {
+            animeList.clear()
+            val response =  animeMediaController.getPageAnimes(Optional.present(currentPage), Optional.present(30))
+            totalPages = response?.pageInfo?.total!!
+            nextPage = response.pageInfo.hasNextPage!!
+            response.media?.forEach {
+                if (it != null) {
+                    animeList.add(
+                        AnimeMedia(
+                            it.id,
+                            it.title?.romaji.toString(),
+                            it.title?.native.toString(),
+                            it.coverImage?.large.toString(),
+                            "${it.startDate?.day}-${it.startDate?.month}-${it.startDate?.year}",
+                            "${it.endDate?.day}-${it.endDate?.month}-${it.endDate?.year}",
+                            it.genres,
+                            it.episodes,
+                            it.status
+                        )
+                    )
+                }
             }
+            refreshAnimeHome()
         }
 
+    //  Lanzamiento de una nueva corutina en cuanto se ha obtenido el resultado de esta primera llamada, esta vez en el hilo de la interfaz.
+    private fun refreshAnimeHome() = lifecycleScope.launch(Dispatchers.Main) {
+            val rvAnimeHomeAnimeAdapter = RecyclerHomeAnimeAdapter(animeList)
+            rvAnimeHome.layoutManager = GridLayoutManager(applicationContext, 2)
+            rvAnimeHome.adapter = rvAnimeHomeAnimeAdapter
+            btnNextPage.isEnabled = nextPage
+            btnPreviousPage.isEnabled = currentPage > 1
+            txtCurrentPage.text = currentPage.toString()
+            Log.d("AnimeCount", "${rvAnimeHome.adapter?.itemCount}")
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -90,10 +109,8 @@ class HomeActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId){
             R.id.itemLogOut -> {
-               if (FirebaseAuth.getInstance() != null){
-                   FirebaseAuth.getInstance().signOut()
-                   onBackPressedDispatcher.onBackPressed()
-               }
+                FirebaseAuth.getInstance().signOut()
+                onBackPressedDispatcher.onBackPressed()
                 true
             } else -> super.onOptionsItemSelected(item)
 

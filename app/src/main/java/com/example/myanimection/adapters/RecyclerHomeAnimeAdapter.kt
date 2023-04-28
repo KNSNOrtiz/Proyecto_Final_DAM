@@ -6,13 +6,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable
+import coil.Coil
+import coil.request.ImageRequest
 import coil.transform.CircleCropTransformation
 import com.example.myanimection.R
 import com.example.myanimection.models.AnimeMedia
-import kotlinx.coroutines.Job
 
-class RecyclerHomeAnimeAdapter(private val data: Array<AnimeMedia>): RecyclerView.Adapter<RecyclerHomeAnimeAdapter.ViewHolder>() {
+class RecyclerHomeAnimeAdapter(private val data: ArrayList<AnimeMedia?>): RecyclerView.Adapter<RecyclerHomeAnimeAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.viewholder_anime, parent, false)
@@ -20,13 +21,23 @@ class RecyclerHomeAnimeAdapter(private val data: Array<AnimeMedia>): RecyclerVie
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.imgCover.load(data[position].bannerImageURl){
-            crossfade(true)
-            placeholder(R.mipmap.ic_launcher_round)
-            transformations(CircleCropTransformation())
+        val circularProgressDrawable = CircularProgressDrawable(holder.itemView.context).apply {
+            strokeWidth = 5f
+            centerRadius = 30f
+            start()
         }
-        holder.txtEnglishTitle.text = data[position].englishTitle
-        holder.txtJapaneseTitle.text = data[position].japaneseTitle
+        val request = ImageRequest.Builder(holder.itemView.context)
+            .data(data[position]?.bannerImageURl)
+            .placeholder(circularProgressDrawable)
+            .transformations(CircleCropTransformation())
+            .target {
+                holder.imgCover.setImageDrawable(it)
+            }
+            .build()
+        Coil.imageLoader(holder.itemView.context).enqueue(request)
+
+        holder.txtNativeTitle.text = data[position]?.romajiTitle
+        holder.txtRomajiTitle.text = data[position]?.nativeTitle
     }
 
     override fun getItemCount(): Int {
@@ -35,13 +46,13 @@ class RecyclerHomeAnimeAdapter(private val data: Array<AnimeMedia>): RecyclerVie
 
     class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
         val imgCover: ImageView
-        val txtEnglishTitle: TextView
-        val txtJapaneseTitle: TextView
+        val txtNativeTitle: TextView
+        val txtRomajiTitle: TextView
 
         init {
             imgCover = view.findViewById(R.id.imgCover)
-            txtEnglishTitle = view.findViewById(R.id.txtTitleEnglish)
-            txtJapaneseTitle = view.findViewById(R.id.txtTitleJapanese)
+            txtNativeTitle = view.findViewById(R.id.txtTitleNative)
+            txtRomajiTitle = view.findViewById(R.id.txtTitleRomaji)
         }
     }
 }

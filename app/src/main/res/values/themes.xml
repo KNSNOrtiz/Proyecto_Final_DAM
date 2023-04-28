@@ -15,13 +15,15 @@
         <item name="materialButtonStyle">@style/AniButton</item>
         <item name="editTextStyle">@style/AniEditText</item>
     </style>
-    <style name="AniButton" parent="Widget.AppCompat.Button">
-        <item name="android:textColor">@color/white</item>
-        <item name="android:fontFamily">@font/roboto_bold_italic</item>
-        <item name="android:background">@drawable/roundbutton</item>
-        <item name="android:padding">8dp</item>
-        <item name="android:gravity">center</item>
-    </style>
+        <style name="AniButton" parent="android:style/Widget.Button">
+            <item name="android:textColor">@color/white</item>
+            <item name="android:fontFamily">@font/roboto_bold_italic</item>
+            <item name="android:background">@drawable/roundbutton</item>
+            <item name="android:padding">8dp</item>
+            <item name="android:focusable">true</item>
+            <item name="android:clickable">true</item>
+            <item name="android:gravity">center</item>
+        </style>
     <style name="AniEditText" parent="@android:style/Widget.EditText">
         <item name="android:background">@drawable/roundedittext</item>
         <item name="android:editable">true</item>

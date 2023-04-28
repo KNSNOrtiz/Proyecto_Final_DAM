@@ -1,12 +1,25 @@
 query SingleAnime {
     Media(type: ANIME) {
+        id
         title {
-            romaji
-            english
             native
+            english
         }
         coverImage {
             large
         }
+        startDate {
+            year
+            month
+            day
+        }
+        endDate {
+            year
+            month
+            day
+        }
+        genres
+        episodes
+        status
     }
 }

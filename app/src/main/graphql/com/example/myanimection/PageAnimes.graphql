@@ -1,0 +1,36 @@
+query PageAnimes($page: Int, $perPage: Int){
+    Page (page: $page, perPage: $perPage) {
+        pageInfo {
+            total
+            currentPage
+            lastPage
+            hasNextPage
+            perPage
+        }
+        media(type: ANIME)  {
+            id
+            title {
+                native
+                romaji
+            }
+            coverImage {
+                large
+            }
+            startDate {
+                year
+                month
+                day
+            }
+            endDate {
+                year
+                month
+                day
+            }
+            genres
+            episodes
+            status
+
+        }
+    }
+
+}

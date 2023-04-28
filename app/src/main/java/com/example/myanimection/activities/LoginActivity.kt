@@ -18,14 +18,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 
-
-enum class ProviderType{
-    BASIC
-}
-
 class LoginActivity : AppCompatActivity() {
 
-    val GOOGLE_SIGNIN = 1
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
