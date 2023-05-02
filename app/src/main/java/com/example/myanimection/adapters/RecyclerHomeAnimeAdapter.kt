@@ -13,7 +13,7 @@ import coil.transform.CircleCropTransformation
 import com.example.myanimection.R
 import com.example.myanimection.models.AnimeMedia
 
-class RecyclerHomeAnimeAdapter(private val data: ArrayList<AnimeMedia?>): RecyclerView.Adapter<RecyclerHomeAnimeAdapter.ViewHolder>() {
+class RecyclerHomeAnimeAdapter(private var data: ArrayList<AnimeMedia?>): RecyclerView.Adapter<RecyclerHomeAnimeAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.viewholder_anime, parent, false)
@@ -36,12 +36,17 @@ class RecyclerHomeAnimeAdapter(private val data: ArrayList<AnimeMedia?>): Recycl
             .build()
         Coil.imageLoader(holder.itemView.context).enqueue(request)
 
-        holder.txtNativeTitle.text = data[position]?.romajiTitle
-        holder.txtRomajiTitle.text = data[position]?.nativeTitle
+        holder.txtNativeTitle.text = data[position]?.nativeTitle
+        holder.txtRomajiTitle.text = data[position]?.romajiTitle
     }
 
     override fun getItemCount(): Int {
         return data.size
+    }
+
+    fun updateData(newAnimeList: ArrayList<AnimeMedia?>) {
+        this.data = newAnimeList
+        notifyItemRangeChanged(0, data.size)
     }
 
     class ViewHolder(view: View): RecyclerView.ViewHolder(view) {

@@ -1,4 +1,4 @@
-package com.example.myanimection.activities
+package com.example.myanimection.views
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle

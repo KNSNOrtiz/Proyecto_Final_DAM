@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/blue_greenish">
+    android:background="@drawable/roundedittext">
 
     <ImageView
         android:id="@+id/imgCover"
@@ -35,6 +35,7 @@
         android:id="@+id/txtTitleNative"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
         android:text="TextView"
         android:textAlignment="center"
         android:textColor="@color/white"

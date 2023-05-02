@@ -1,6 +1,5 @@
-package com.example.myanimection.activities
+package com.example.myanimection.views
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
@@ -37,7 +36,7 @@ class LoginActivity : AppCompatActivity() {
                         FirebaseAuth.getInstance().signInWithCredential(credential)
                             .addOnCompleteListener {
                                 if (it.isSuccessful) {
-                                    var intent = Intent(this, HomeActivity::class.java)
+                                    val intent = Intent(this, MainActivity::class.java)
                                     startActivity(intent)
                                 } else {
                                     Notifications.shortToast(
@@ -107,7 +106,7 @@ class LoginActivity : AppCompatActivity() {
                     val user = FirebaseAuth.getInstance().currentUser
                     if (user != null){
                         if (user.isEmailVerified){
-                            var intent = Intent(this, HomeActivity::class.java)
+                            var intent = Intent(this, HomeFragment::class.java)
                             startActivity(intent)
                         } else{
                             Notifications.alertDialogOK(this, "Cuenta no verificada",
