@@ -9,15 +9,16 @@ import com.example.myanimection.utils.ApolloClient
 
 //  Clase encargada de lanzar las peticiones sobre anime al cliente de Apollo.
 class AnimeMediaRepository {
-    suspend fun singleAnime(): ApolloResponse<SingleAnimeQuery.Data>{
-        val response = ApolloClient.instance.query(SingleAnimeQuery()).execute()
-        Log.d("AnimeQuery", "Success ${response.data}" )
+
+    suspend fun singleAnime(id: Optional<Int?>): ApolloResponse<SingleAnimeQuery.Data> {
+        val response = ApolloClient.instance.query(SingleAnimeQuery(id)).execute()
+        Log.d("AnimeQuery", "Success ${response.data?.Media}")
         return response
     }
 
-    suspend fun pageAnimes(page: Optional<Int?>, perPage: Optional<Int?>): ApolloResponse<PageAnimesQuery.Data>{
+    suspend fun pageAnimes(page: Optional<Int?>, perPage: Optional<Int?>): ApolloResponse<PageAnimesQuery.Data> {
         val response = ApolloClient.instance.query(PageAnimesQuery(page, perPage)).execute()
-        Log.d("AnimeQuery", "Success ${response.data}" )
+        Log.d("AnimeQuery", "Success ${response.data}")
         return response
     }
 }

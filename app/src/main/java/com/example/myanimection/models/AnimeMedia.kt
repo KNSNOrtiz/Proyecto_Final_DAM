@@ -7,9 +7,5 @@ data class AnimeMedia(
     val romajiTitle: String?,
     val nativeTitle: String?,
     val bannerImageURl: String?,
-    val startDate: String?,
-    val endDate: String?,
-    val genres: List<String?>?,
-    val episodes: Int?,
-    val status: MediaStatus?
+    val genres: List<String?>?
 )

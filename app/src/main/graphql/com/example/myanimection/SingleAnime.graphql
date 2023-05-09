@@ -1,12 +1,19 @@
-query SingleAnime {
-    Media(type: ANIME) {
+query SingleAnime($id: Int) {
+    Media(id: $id, type: ANIME) {
         id
         title {
+            romaji
             native
-            english
         }
         coverImage {
             large
+        }
+        description
+        studios {
+            nodes {
+                name
+                isAnimationStudio
+            }
         }
         startDate {
             year
@@ -21,5 +28,22 @@ query SingleAnime {
         genres
         episodes
         status
+        characters {
+            nodes {
+                name {
+                    full
+                }
+                image {
+                    medium
+                }
+            }
+        }
+        streamingEpisodes {
+            title
+            thumbnail
+            url
+            site
+        }
+
     }
 }

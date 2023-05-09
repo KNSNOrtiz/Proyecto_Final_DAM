@@ -4,6 +4,8 @@
 
     <item
         android:id="@+id/itemLogOut"
+        android:icon="@drawable/icon_exit"
+        android:iconTint="@color/blue_greenish"
         android:title="Cerrar sesión"
         app:showAsAction="ifRoom" />
 </menu>

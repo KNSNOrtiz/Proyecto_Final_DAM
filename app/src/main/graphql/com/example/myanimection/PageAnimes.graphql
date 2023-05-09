@@ -16,19 +16,7 @@ query PageAnimes($page: Int, $perPage: Int){
             coverImage {
                 large
             }
-            startDate {
-                year
-                month
-                day
-            }
-            endDate {
-                year
-                month
-                day
-            }
             genres
-            episodes
-            status
 
         }
     }
