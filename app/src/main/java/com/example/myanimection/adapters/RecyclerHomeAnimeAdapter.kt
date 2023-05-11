@@ -1,10 +1,15 @@
 package com.example.myanimection.adapters
 
+import android.content.Context
+import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import coil.Coil
@@ -12,6 +17,7 @@ import coil.request.ImageRequest
 import coil.transform.RoundedCornersTransformation
 import com.example.myanimection.R
 import com.example.myanimection.models.AnimeMedia
+import com.example.myanimection.views.AnimeDetailFragment
 
 class RecyclerHomeAnimeAdapter(var data: ArrayList<AnimeMedia?>): RecyclerView.Adapter<RecyclerHomeAnimeAdapter.ViewHolder>() {
 
@@ -38,6 +44,9 @@ class RecyclerHomeAnimeAdapter(var data: ArrayList<AnimeMedia?>): RecyclerView.A
         Coil.imageLoader(holder.itemView.context).enqueue(request)
         holder.txtNativeTitle.text = data[position]?.nativeTitle
         holder.txtRomajiTitle.text = data[position]?.romajiTitle
+        holder.itemView.setOnClickListener {
+            loadFragment(holder.itemView.context, data[position]?.id!!)
+        }
     }
 
     override fun getItemCount(): Int {
@@ -50,9 +59,22 @@ class RecyclerHomeAnimeAdapter(var data: ArrayList<AnimeMedia?>): RecyclerView.A
         val txtRomajiTitle: TextView
 
         init {
-            imgCover = view.findViewById(R.id.imgCover)
+            imgCover = view.findViewById(R.id.imgEpisodeThumbnail)
             txtNativeTitle = view.findViewById(R.id.txtTitleNativeAnimeMaster)
-            txtRomajiTitle = view.findViewById(R.id.txtTitleRomajiAnimeMaster)
+            txtRomajiTitle = view.findViewById(R.id.txtEpisodeName)
         }
+    }
+
+    private fun loadFragment(context: Context, animeMediaId: Int) {
+        val fragment = AnimeDetailFragment()
+        val bundle = Bundle()
+        bundle.putInt("animeId", animeMediaId)
+        fragment.arguments = bundle
+        Log.d("ID LOADFRAGMENT", animeMediaId.toString())
+        val navHostFragment = (context as AppCompatActivity)
+            .supportFragmentManager
+            .findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+        val navController = navHostFragment.navController
+        navController.navigate(R.id.action_HomeFragment_to_animeDetailFragment, bundle)
     }
 }

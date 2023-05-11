@@ -5,12 +5,30 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/HomeFragment">
 
+    <action
+        android:id="@+id/action_animeDetailFragment_to_HomeFragment"
+        app:destination="@id/HomeFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    <action
+        android:id="@+id/action_HomeFragment_to_animeDetailFragment"
+        app:destination="@id/animeDetailFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"
+        app:popUpTo="@id/animeDetailFragment" />
     <fragment
         android:id="@+id/HomeFragment"
         android:name="com.example.myanimection.views.HomeFragment"
         android:label="Home"
-        tools:layout="@layout/fragment_home">
-    </fragment>
+        tools:layout="@layout/fragment_home"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
     <fragment
         android:id="@+id/SearchFragment"
         android:name="com.example.myanimection.views.SearchFragment"
@@ -23,8 +41,25 @@
     </fragment>
     <action
         android:id="@+id/action_HomeFragment_to_SearchFragment"
-        app:destination="@id/SearchFragment" />
+        app:destination="@id/SearchFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"
+        />
     <action
         android:id="@+id/action_SearchFragment_to_HomeFragment"
-        app:destination="@id/HomeFragment" />
+        app:destination="@id/HomeFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+    <fragment
+        android:id="@+id/animeDetailFragment"
+        android:name="com.example.myanimection.views.AnimeDetailFragment"
+        android:label="AnimeDetailFragment"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
 </navigation>

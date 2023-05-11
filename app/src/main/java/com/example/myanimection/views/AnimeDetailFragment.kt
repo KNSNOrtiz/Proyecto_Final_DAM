@@ -1,7 +1,5 @@
 package com.example.myanimection.views
 
-import android.graphics.RenderEffect
-import android.graphics.Shader
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,13 +8,19 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.Recycler
 import coil.Coil
 import coil.request.ImageRequest
 import coil.transform.RoundedCornersTransformation
 import com.apollographql.apollo3.api.Optional
 import com.example.myanimection.R
+import com.example.myanimection.adapters.RecyclerCharacterAdapter
+import com.example.myanimection.adapters.RecyclerEpisodeAdapter
 import com.example.myanimection.controllers.AnimeMediaController
 import com.example.myanimection.repositories.AnimeMediaRepository
+import com.example.myanimection.utils.GridSpacingItemDecorator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -24,6 +28,8 @@ import kotlinx.coroutines.launch
 class AnimeDetailFragment : Fragment() {
 
     private val animeMediaController = AnimeMediaController(AnimeMediaRepository())
+    private val rvCharacterAdapter: RecyclerCharacterAdapter = RecyclerCharacterAdapter(arrayListOf())
+    private val rvEpisodesAdapter: RecyclerEpisodeAdapter = RecyclerEpisodeAdapter(arrayListOf())
 
     private lateinit var imgPortrait: ImageView
     private lateinit var txtRomajiTitle: TextView
@@ -35,6 +41,8 @@ class AnimeDetailFragment : Fragment() {
     private lateinit var txtEndDate: TextView
     private lateinit var txtEpisodes: TextView
     private lateinit var txtStatus: TextView
+    private lateinit var rvCharacters: RecyclerView
+    private lateinit var rvEpisodes: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,6 +60,15 @@ class AnimeDetailFragment : Fragment() {
         txtEndDate = view.findViewById(R.id.txtAnimeDetailEndDate)
         txtEpisodes = view.findViewById(R.id.txtAnimeDetailEpisodes)
         txtStatus = view.findViewById(R.id.txtAnimeDetailStatus)
+        rvCharacters = view.findViewById(R.id.rvAnimeDetailCharacters)
+        rvCharacters.adapter = rvCharacterAdapter
+        rvCharacters.addItemDecoration(GridSpacingItemDecorator(3, 20, false))
+        rvCharacters.layoutManager = GridLayoutManager(context, 3)
+        rvEpisodes = view.findViewById(R.id.rvAnimeDetailEpisodes)
+        rvEpisodes.adapter = rvEpisodesAdapter
+        rvEpisodes.addItemDecoration(GridSpacingItemDecorator(3, 20, false))
+        rvEpisodes.layoutManager = GridLayoutManager(context, 3)
+
 
         launchSingleAnimeQuery()
 
@@ -61,9 +78,11 @@ class AnimeDetailFragment : Fragment() {
     private fun launchSingleAnimeQuery() = lifecycleScope.launch (Dispatchers.IO) {
         val animeMediaId = arguments?.getInt("animeId", 1) ?: 1     //  Ternaria para que en caso de no encontrar ningún parámetro por defecto sea 1.
         val response = animeMediaController.getSingleAnime(Optional.present(animeMediaId))
+        rvCharacterAdapter.data.addAll(response!!.characters)
+        rvEpisodesAdapter.data.addAll(response.streamingEpisode?.filterNotNull()!!.toList())
         lifecycleScope.launch(Dispatchers.Main) {
             val request = ImageRequest.Builder(requireContext())
-                .data(response!!.bannerImageURl)
+                .data(response.bannerImageURl)
                 .transformations(RoundedCornersTransformation(10f))
                 .target {
                     imgPortrait.setImageDrawable(it)
@@ -87,7 +106,8 @@ class AnimeDetailFragment : Fragment() {
             txtEndDate.text = response.endDate
             txtStatus.text = response.status!!.name
             txtEpisodes.text = response.episodes.toString()
-
+            rvCharacterAdapter.notifyItemRangeInserted(0, rvCharacterAdapter.itemCount-1)
+            rvEpisodesAdapter.notifyItemRangeInserted(0, rvEpisodesAdapter.itemCount-1)
         }
     }
 
