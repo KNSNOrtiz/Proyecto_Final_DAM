@@ -1,8 +1,10 @@
 package com.example.myanimection.controllers
 
+import android.provider.MediaStore.Audio.Genres
 import android.util.Log
 import com.apollographql.apollo3.api.Optional
 import com.example.myanimection.PageAnimesQuery
+import com.example.myanimection.SearchAnimesQuery
 import com.example.myanimection.models.AnimeCharacter
 import com.example.myanimection.models.AnimeMapper
 import com.example.myanimection.models.AnimeMedia
@@ -41,7 +43,6 @@ class AnimeMediaController(private val repository: AnimeMediaRepository) {
         } else {
             null
         }
-        Log.d("AnimePOJO", animeResult.toString())
         return animeResult
     }
 
@@ -50,6 +51,16 @@ class AnimeMediaController(private val repository: AnimeMediaRepository) {
         coroutineScope {
             launch {
                 response = repository.pageAnimes(page, perPage).data?.Page
+            }.join()
+        }
+        return response
+    }
+
+    suspend fun getSearchAnimes(title: Optional<String>, genres: Optional<List<String>>): SearchAnimesQuery.Page? {
+        var response: SearchAnimesQuery.Page? = null
+        coroutineScope {
+            launch {
+                response = repository.searchAnime(title, genres).data?.Page
             }.join()
         }
         return response

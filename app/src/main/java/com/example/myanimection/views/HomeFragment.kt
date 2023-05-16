@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.apollographql.apollo3.api.Optional
 import com.example.myanimection.R
-import com.example.myanimection.adapters.RecyclerHomeAnimeAdapter
+import com.example.myanimection.adapters.RecyclerAnimeMediaAdapter
 import com.example.myanimection.controllers.AnimeMediaController
 import com.example.myanimection.models.AnimeMedia
 import com.example.myanimection.repositories.AnimeMediaRepository
@@ -30,7 +30,7 @@ import java.lang.Math.abs
 class HomeFragment : Fragment() {
 
     private val animeMediaController = AnimeMediaController(AnimeMediaRepository())
-    private val rvAnimeHomeAnimeAdapter = RecyclerHomeAnimeAdapter(ArrayList<AnimeMedia?>())
+    private val rvAnimeHomeAnimeAdapter = RecyclerAnimeMediaAdapter(ArrayList<AnimeMedia?>())
     private val myAnimeList = ArrayList<AnimeMedia?>()
     private var currentPage = 1
     private var totalPages = 0
@@ -119,7 +119,7 @@ class HomeFragment : Fragment() {
      private fun launchPageQuery() = lifecycleScope.launch(Dispatchers.IO) {
             myAnimeList.clear()
             val response =  animeMediaController.getPageAnimes(Optional.present(currentPage), Optional.present(30))
-            totalPages = response?.pageInfo?.total!!
+            totalPages = response?.pageInfo?.lastPage!!
             nextPage = response.pageInfo.hasNextPage!!
             response.media?.forEach {
                 if (it != null) {

@@ -1,5 +1,5 @@
-query PageAnimes($page: Int, $perPage: Int){
-    Page (page: $page, perPage: $perPage) {
+query SearchAnimes($search: String, $genres: [String]) {
+    Page (page: 1, perPage: 25) {
         pageInfo {
             total
             currentPage
@@ -7,7 +7,7 @@ query PageAnimes($page: Int, $perPage: Int){
             hasNextPage
             perPage
         }
-        media(type: ANIME,  isAdult: false)  {
+        media(type: ANIME, genre_in: $genres, search: $search, isAdult: false)  {
             id
             title {
                 native
@@ -20,5 +20,4 @@ query PageAnimes($page: Int, $perPage: Int){
 
         }
     }
-
 }

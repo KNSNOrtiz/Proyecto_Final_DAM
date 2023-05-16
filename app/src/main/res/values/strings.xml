@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">My Animection</string>
     <string name="user_created">Usuario creado</string>
-    <string name="title_activity_anime_detail">AnimeDetailActivity</string>
+    <string name="title_activity_anime_detail">Vista detallada</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
@@ -12,4 +12,16 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string-array name="genres">
+        <item>Sin género</item>
+        <item>Sci-Fi</item>
+        <item>Drama</item>
+        <item>Action</item>
+        <item>Adventure</item>
+        <item>Slice of life</item>
+        <item>Comedy</item>
+        <item>Fantasy</item>
+        <item>Mystery</item>
+        <item>Romance</item>
+    </string-array>
 </resources>
