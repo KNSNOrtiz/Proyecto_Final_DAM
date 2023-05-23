@@ -15,17 +15,9 @@
         android:theme="@style/Theme.MyAnimection"
         tools:targetApi="31">
         <activity
-            android:name=".AnimeDetailActivity"
-            android:exported="false"
-            android:label="@string/title_activity_anime_detail"
-            android:theme="@style/Theme.MyAnimection.NoActionBar">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
             android:name=".views.MainActivity"
             android:windowSoftInputMode="adjustPan"
+            android:screenOrientation="portrait"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -33,6 +25,7 @@
         </activity>
         <activity
             android:name=".views.PasswordRecoverActivity"
+            android:screenOrientation="portrait"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -40,6 +33,7 @@
         </activity>
         <activity
             android:name=".views.SignupActivity"
+            android:screenOrientation="portrait"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -47,6 +41,7 @@
         </activity>
         <activity
             android:name=".views.LoginActivity"
+            android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -58,14 +53,6 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
-        <activity
-            android:name=".views.HomeFragment"
-            android:exported="true">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

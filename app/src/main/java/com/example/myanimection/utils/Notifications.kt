@@ -30,4 +30,5 @@ object Notifications : Application() {
             positiveButton(text = "OK.", click = positiveButtonClickListener)
         }
     }
+
 }

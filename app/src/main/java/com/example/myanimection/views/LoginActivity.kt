@@ -3,6 +3,7 @@ package com.example.myanimection.views
 import android.content.Intent
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
@@ -11,6 +12,10 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myanimection.R
+import com.example.myanimection.controllers.UserController
+import com.example.myanimection.models.ListedAnimeMedia
+import com.example.myanimection.models.User
+import com.example.myanimection.models.UserLists
 import com.example.myanimection.utils.Notifications
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -19,13 +24,13 @@ import com.google.firebase.auth.GoogleAuthProvider
 
 class LoginActivity : AppCompatActivity() {
 
-
+    private val userController = UserController()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        var resultGoogleLauncher =
+        val resultGoogleLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == RESULT_OK) {
                     val data = result.data
@@ -36,6 +41,26 @@ class LoginActivity : AppCompatActivity() {
                         FirebaseAuth.getInstance().signInWithCredential(credential)
                             .addOnCompleteListener {
                                 if (it.isSuccessful) {
+                                    //  Comprobación de si es el primer inicio de sesión para darlo de alta en la BD. Se hace aquí
+                                    //  para evitar hacer lecturas continuamente.
+                                    val additionalInfo = it.result.additionalUserInfo
+                                    if (additionalInfo != null) {
+                                        if (additionalInfo.isNewUser) {
+                                            val user = FirebaseAuth.getInstance().currentUser
+                                            userController.isUserRegistered(user!!.uid, object: UserController.FirestoreQueryCallback {
+                                                override fun onQueryComplete(success: Boolean) {
+                                                    if (!success) {
+                                                        userController.addUser(User(user.uid, user.displayName!!, user.email!!, UserLists(
+                                                            arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf()
+                                                        )))
+                                                    }
+                                                }
+                                                override fun onQueryFailure(exception: Exception) {
+                                                    Log.e("User query failed", "${exception.message}")
+                                                }
+                                            })
+                                        }
+                                    }
                                     val intent = Intent(this, MainActivity::class.java)
                                     startActivity(intent)
                                 } else {
@@ -73,7 +98,7 @@ class LoginActivity : AppCompatActivity() {
             val intent = Intent(this, SignupActivity::class.java)
             startActivity(intent)
         }
-        btnLogIn.setOnClickListener { signIn(txtEmailSign.text.toString(), txtPasswordSign.text.toString()) }
+        btnLogIn.setOnClickListener { signIn(txtEmailSign.text.toString().trim(), txtPasswordSign.text.toString().trim()) }
 
         btnGoogleLogIn.setOnClickListener {
             googleSignIn(resultGoogleLauncher)
@@ -103,10 +128,10 @@ class LoginActivity : AppCompatActivity() {
         if (validateFields(email, password)){
             FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password).addOnCompleteListener {
                 if (it.isSuccessful){
-                    val user = FirebaseAuth.getInstance().currentUser
+                    val user = it.result.user
                     if (user != null){
-                        if (user.isEmailVerified){
-                            var intent = Intent(this, HomeFragment::class.java)
+                        if (user.isEmailVerified) {
+                            var intent = Intent(this, MainActivity::class.java)
                             startActivity(intent)
                         } else{
                             Notifications.alertDialogOK(this, "Cuenta no verificada",

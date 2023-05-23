@@ -18,7 +18,9 @@ import com.apollographql.apollo3.api.Optional
 import com.example.myanimection.R
 import com.example.myanimection.adapters.RecyclerAnimeMediaAdapter
 import com.example.myanimection.controllers.AnimeMediaController
+import com.example.myanimection.controllers.UserController
 import com.example.myanimection.models.AnimeMedia
+import com.example.myanimection.models.ListedAnimeMedia
 import com.example.myanimection.repositories.AnimeMediaRepository
 import com.example.myanimection.utils.GridSpacingItemDecorator
 import com.google.firebase.auth.FirebaseAuth
@@ -46,6 +48,7 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
+        (activity as MainActivity).supportActionBar?.show()
         rvAnimeHome = view.findViewById(R.id.rvAnimeHome)
         cardViewRV = view.findViewById(R.id.cardViewRecycler)
         rvAnimeHome.setOnTouchListener (object : View.OnTouchListener {
@@ -53,7 +56,6 @@ class HomeFragment : Fragment() {
             private var downY = 0f
 
             override fun onTouch(v: View, event: MotionEvent): Boolean {
-                Log.d("HOLA", "HOLA")
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         downX = event.x
@@ -102,18 +104,11 @@ class HomeFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //  FIREBASE AUTHENTICATION
-        val user = FirebaseAuth.getInstance().currentUser
-        Log.d("Test","¡Bienvenido/a, ${user?.email}!" )
-
         try{
             launchPageQuery()
         } catch (ex: RuntimeException){
             Log.d("NOT FOUND", "Animes no encontrados.")
         }
-
-
-
     }
     //  Lanzamiento de corutina en un hilo de lectura/escritura.
      private fun launchPageQuery() = lifecycleScope.launch(Dispatchers.IO) {

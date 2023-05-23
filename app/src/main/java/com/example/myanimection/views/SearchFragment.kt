@@ -49,6 +49,7 @@ class SearchFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_search, container, false)
+        (activity as MainActivity).supportActionBar?.hide()
         txtSearch = view.findViewById(R.id.txtSearch)
         spinGenre1 = view.findViewById(R.id.spinGenre1)
         spinGenre2= view.findViewById(R.id.spinGenre2)

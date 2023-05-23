@@ -1,16 +1,16 @@
 package com.example.myanimection.views
 
 import android.os.Bundle
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.Recycler
 import coil.Coil
 import coil.request.ImageRequest
 import coil.transform.RoundedCornersTransformation
@@ -19,17 +19,24 @@ import com.example.myanimection.R
 import com.example.myanimection.adapters.RecyclerCharacterAdapter
 import com.example.myanimection.adapters.RecyclerEpisodeAdapter
 import com.example.myanimection.controllers.AnimeMediaController
+import com.example.myanimection.controllers.UserController
+import com.example.myanimection.models.AnimeMediaDetailed
+import com.example.myanimection.models.ListedAnimeMedia
 import com.example.myanimection.repositories.AnimeMediaRepository
 import com.example.myanimection.utils.GridSpacingItemDecorator
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
 class AnimeDetailFragment : Fragment() {
 
+    private val userController = UserController()
+    private val currentUser = FirebaseAuth.getInstance().currentUser
     private val animeMediaController = AnimeMediaController(AnimeMediaRepository())
     private val rvCharacterAdapter: RecyclerCharacterAdapter = RecyclerCharacterAdapter(arrayListOf())
     private val rvEpisodesAdapter: RecyclerEpisodeAdapter = RecyclerEpisodeAdapter(arrayListOf())
+    private lateinit var queriedAnime: AnimeMediaDetailed
 
     private lateinit var imgPortrait: ImageView
     private lateinit var txtRomajiTitle: TextView
@@ -49,7 +56,8 @@ class AnimeDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_anime_detail, container, false)
-
+        (activity as MainActivity).supportActionBar?.show()
+        setupMenu()
         imgPortrait = view.findViewById(R.id.imgAnimeDetailPortrait)
         txtRomajiTitle = view.findViewById(R.id.txtAnimeDetailTitleRomaji)
         txtNativeTitle = view.findViewById(R.id.txtAnimeDetailTitleNative)
@@ -75,39 +83,89 @@ class AnimeDetailFragment : Fragment() {
         return view
     }
 
+    private fun setupMenu() {
+        (requireActivity() as MainActivity).addMenuProvider(object : MenuProvider {
+            override fun onPrepareMenu(menu: Menu) {
+
+            }
+
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.clear()
+                menuInflater.inflate(R.menu.menu_action_detail, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+               when(menuItem.itemId) {
+                   R.id.itemAddWatching -> {
+                       if (currentUser != null) {
+                           userController.addAnimeToList(currentUser.uid, arrayListOf(
+                               ListedAnimeMedia(queriedAnime.id, queriedAnime.romajiTitle!!, queriedAnime.bannerImageURl!!, 0, queriedAnime.episodes )
+                           ), UserController.ANIMELIST.WATCHING)
+                       }
+                   }
+                   R.id.itemAddComplete -> {
+                       if (currentUser != null) {
+                           userController.addAnimeToList(currentUser.uid, arrayListOf(
+                               ListedAnimeMedia(queriedAnime.id, queriedAnime.romajiTitle!!, queriedAnime.bannerImageURl!!, 0, queriedAnime.episodes )
+                           ), UserController.ANIMELIST.COMPLETED)
+                       }
+                   }
+                   R.id.itemAddPending -> {
+                       if (currentUser != null) {
+                           userController.addAnimeToList(currentUser.uid, arrayListOf(
+                               ListedAnimeMedia(queriedAnime.id, queriedAnime.romajiTitle!!, queriedAnime.bannerImageURl!!, 0, queriedAnime.episodes )
+                           ), UserController.ANIMELIST.PENDING)
+                       }
+                   }
+                   R.id.itemAddDropped -> {
+                       if (currentUser != null) {
+                           userController.addAnimeToList(currentUser.uid, arrayListOf(
+                               ListedAnimeMedia(queriedAnime.id, queriedAnime.romajiTitle!!, queriedAnime.bannerImageURl!!, 0, queriedAnime.episodes )
+                           ), UserController.ANIMELIST.DROPPED)
+                       }
+                   }
+               }
+                return true
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
     private fun launchSingleAnimeQuery() = lifecycleScope.launch (Dispatchers.IO) {
         val animeMediaId = arguments?.getInt("animeId", 1) ?: 1     //  Ternaria para que en caso de no encontrar ningún parámetro por defecto sea 1.
         val response = animeMediaController.getSingleAnime(Optional.present(animeMediaId))
-        rvCharacterAdapter.data.addAll(response!!.characters)
-        rvEpisodesAdapter.data.addAll(response.streamingEpisode?.filterNotNull()!!.toList())
-        lifecycleScope.launch(Dispatchers.Main) {
-            val request = ImageRequest.Builder(requireContext())
-                .data(response.bannerImageURl)
-                .transformations(RoundedCornersTransformation(10f))
-                .target {
-                    imgPortrait.setImageDrawable(it)
+        if (response != null) {
+            queriedAnime = response
+            rvCharacterAdapter.data.addAll(queriedAnime.characters)
+            rvEpisodesAdapter.data.addAll(queriedAnime.streamingEpisode?.filterNotNull()!!.toList())
+            lifecycleScope.launch(Dispatchers.Main) {
+                val request = ImageRequest.Builder(requireContext())
+                    .data(queriedAnime.bannerImageURl)
+                    .transformations(RoundedCornersTransformation(10f))
+                    .target {
+                        imgPortrait.setImageDrawable(it)
+                    }
+                    .build()
+                Coil.imageLoader(requireContext()).enqueue(request)
+                txtRomajiTitle.text = queriedAnime.romajiTitle
+                txtNativeTitle.text = queriedAnime.nativeTitle
+                txtDescription.text = queriedAnime.description
+                var genres = ""
+                for (i in queriedAnime.genres!!.indices) {
+                    if (i != queriedAnime.genres!!.size-1) {
+                        genres += queriedAnime.genres!![i] + ", "
+                    } else{
+                        genres += queriedAnime.genres!![i]
+                    }
                 }
-                .build()
-            Coil.imageLoader(requireContext()).enqueue(request)
-            txtRomajiTitle.text = response.romajiTitle
-            txtNativeTitle.text = response.nativeTitle
-            txtDescription.text = response.description
-            var genres = ""
-            for (i in response.genres!!.indices) {
-                if (i != response.genres.size-1) {
-                    genres += response.genres[i] + ", "
-                } else{
-                    genres += response.genres[i]
-                }
-            }
-            txtStudio.text = response.animationStudio
-            txtGenres.text = genres
-            txtStartDate.text = response.startDate
-            txtEndDate.text = response.endDate
-            txtStatus.text = response.status!!.name
-            txtEpisodes.text = response.episodes.toString()
-            rvCharacterAdapter.notifyItemRangeInserted(0, rvCharacterAdapter.itemCount-1)
-            rvEpisodesAdapter.notifyItemRangeInserted(0, rvEpisodesAdapter.itemCount-1)
+                txtStudio.text = queriedAnime.animationStudio
+                txtGenres.text = genres
+                txtStartDate.text = queriedAnime.startDate
+                txtEndDate.text = queriedAnime.endDate
+                txtStatus.text = queriedAnime.status!!.name
+                txtEpisodes.text = queriedAnime.episodes.toString()
+                rvCharacterAdapter.notifyItemRangeInserted(0, rvCharacterAdapter.itemCount-1)
+                rvEpisodesAdapter.notifyItemRangeInserted(0, rvEpisodesAdapter.itemCount-1)
+        }
         }
     }
 
