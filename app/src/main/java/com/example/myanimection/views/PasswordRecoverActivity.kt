@@ -22,7 +22,8 @@ class PasswordRecoverActivity : AppCompatActivity() {
             val email = txtEmail.text.toString()
             FirebaseAuth.getInstance().sendPasswordResetEmail(email)
             Notifications.alertDialogOK(this, "Recuperación de contraseña", "Se ha enviado un enlace al email para recuperar la cuenta." ,
-            positiveButtonClickListener = {onBackPressedDispatcher.onBackPressed()})
+            positiveButtonClickListener = {onBackPressedDispatcher.onBackPressed()},
+            negativeButtonClickListener = null)
         }
 
     }

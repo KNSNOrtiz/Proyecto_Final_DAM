@@ -11,6 +11,7 @@ import androidx.viewpager2.widget.ViewPager2
 import coil.load
 import coil.transform.CircleCropTransformation
 import com.example.myanimection.adapters.ViewPagerProfileAdapter
+import com.example.myanimection.controllers.ReviewController
 import com.example.myanimection.controllers.UserController
 import com.example.myanimection.views.MainActivity
 import com.google.android.material.tabs.TabLayout
@@ -21,6 +22,7 @@ import com.google.firebase.ktx.Firebase
 class ProfileFragment : Fragment() {
 
     private val userController = UserController()
+    private val reviewController = ReviewController()
     private lateinit var imgProfilePic: ImageView
     private lateinit var txtDisplayName: TextView
     private lateinit var txtEmail: TextView
@@ -29,7 +31,6 @@ class ProfileFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        (activity as MainActivity).supportActionBar?.hide()
     }
 
     override fun onCreateView(
@@ -37,7 +38,6 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
-
         imgProfilePic = view.findViewById(R.id.imgProfilePicture)
         txtDisplayName = view.findViewById(R.id.txtProfileDisplayName)
         txtEmail = view.findViewById(R.id.txtProfileEmail)
@@ -60,10 +60,18 @@ class ProfileFragment : Fragment() {
             }
         })
 
-        userController.getUserProfilePic().downloadUrl.addOnCompleteListener {
+        userController.getLoggedUserProfilePic().downloadUrl.addOnCompleteListener {
             if (it.isSuccessful) {
                 imgProfilePic.load(it.result) {
                     transformations(CircleCropTransformation())
+                    error(R.drawable.ic_profile)
+                    placeholder(R.drawable.ic_profile)
+                }
+            } else {
+                imgProfilePic.load(R.drawable.ic_profile) {
+                    transformations(CircleCropTransformation())
+                    error(R.drawable.ic_profile)
+                    placeholder(R.drawable.ic_profile)
                 }
             }
         }
@@ -72,21 +80,6 @@ class ProfileFragment : Fragment() {
         return view
     }
 
-    private fun setupMenu() {
-        (requireActivity() as MainActivity).addMenuProvider(object : MenuProvider {
-            override fun onPrepareMenu(menu: Menu) {
-
-            }
-
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.clear()
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return false
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
-    }
 
 
 }

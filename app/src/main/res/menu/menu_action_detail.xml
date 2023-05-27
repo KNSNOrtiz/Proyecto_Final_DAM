@@ -1,22 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:popupTheme="@style/AniPopUpMenu">
+
     <item
-        android:title="AÑADIR A UNA LISTA"
-        app:showAsAction="collapseActionView">
-        <menu>
-            <item
-                android:id="@+id/itemAddPending"
-                android:title="Pendiente" />
-            <item
-                android:id="@+id/itemAddWatching"
-                android:title="Viendo" />
-            <item
-                android:id="@+id/itemAddComplete"
-                android:title="Completado" />
-            <item
-                android:id="@+id/itemAddDropped"
-                android:title="Abandonado" />
-        </menu>
-    </item>
+        android:id="@+id/itemAddAnime"
+        android:title="Añadir Anime" />
+    <item
+        android:id="@+id/itemReviews"
+        android:title="Reseñas" />
 </menu>

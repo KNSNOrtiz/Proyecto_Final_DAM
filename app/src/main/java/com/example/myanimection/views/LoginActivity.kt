@@ -12,10 +12,9 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myanimection.R
+import com.example.myanimection.controllers.FirestoreQueryCallback
 import com.example.myanimection.controllers.UserController
-import com.example.myanimection.models.ListedAnimeMedia
 import com.example.myanimection.models.User
-import com.example.myanimection.models.UserLists
 import com.example.myanimection.utils.Notifications
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -47,12 +46,10 @@ class LoginActivity : AppCompatActivity() {
                                     if (additionalInfo != null) {
                                         if (additionalInfo.isNewUser) {
                                             val user = FirebaseAuth.getInstance().currentUser
-                                            userController.isUserRegistered(user!!.uid, object: UserController.FirestoreQueryCallback {
+                                            userController.isUserRegistered(user!!.uid, object:FirestoreQueryCallback {
                                                 override fun onQueryComplete(success: Boolean) {
                                                     if (!success) {
-                                                        userController.addUser(User(user.uid, user.displayName!!, user.email!!, UserLists(
-                                                            arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf()
-                                                        )))
+                                                        userController.addUser(User(user.uid, user.displayName!!, user.email!!, arrayListOf()))
                                                     }
                                                 }
                                                 override fun onQueryFailure(exception: Exception) {

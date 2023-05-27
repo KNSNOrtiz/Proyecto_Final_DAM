@@ -56,7 +56,7 @@
     <fragment
         android:id="@+id/animeDetailFragment"
         android:name="com.example.myanimection.views.AnimeDetailFragment"
-        android:label="Detail"
+        android:label="Detalle"
         app:enterAnim="@anim/nav_default_enter_anim"
         app:exitAnim="@anim/nav_default_exit_anim"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -64,13 +64,26 @@
     <fragment
         android:id="@+id/ProfileFragment"
         android:name="com.example.myanimection.ProfileFragment"
-        android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile"
+        android:label="Perfil"
         app:enterAnim="@anim/nav_default_enter_anim"
         app:exitAnim="@anim/nav_default_exit_anim"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-        app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"
+        tools:layout="@layout/fragment_profile" />
     <action
         android:id="@+id/action_HomeFragment_to_ProfileFragment"
         app:destination="@id/ProfileFragment" />
+    <fragment
+        android:id="@+id/ReviewsFragment"
+        android:name="com.example.myanimection.views.ReviewsFragment"
+        android:label="Reseñas"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"
+        tools:layout="@layout/fragment_reviews" />
+
+    <action
+        android:id="@+id/action_animeDetailFragment_to_ReviewsFragment"
+        app:destination="@id/ReviewsFragment"/>
 </navigation>

@@ -49,14 +49,13 @@ class SearchFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_search, container, false)
-        (activity as MainActivity).supportActionBar?.hide()
         txtSearch = view.findViewById(R.id.txtSearch)
         spinGenre1 = view.findViewById(R.id.spinGenre1)
         spinGenre2= view.findViewById(R.id.spinGenre2)
         spinGenre3 = view.findViewById(R.id.spinGenre3)
         btnFilter = view.findViewById(R.id.btnSearchFilter)
-        ArrayAdapter.createFromResource(view.context, R.array.genres, android.R.layout.simple_spinner_item).also { adapter ->
-            adapter.setDropDownViewResource(com.google.android.material.R.layout.support_simple_spinner_dropdown_item)
+        ArrayAdapter.createFromResource(view.context, R.array.genres, R.layout.ani_spin_item).also { adapter ->
+            adapter.setDropDownViewResource(R.layout.ani_spin_dropdown_item)
             spinGenre1.adapter = adapter
             spinGenre2.adapter = adapter
             spinGenre3.adapter = adapter

@@ -1,29 +1,42 @@
 package com.example.myanimection.views
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.*
-import androidx.fragment.app.Fragment
+import android.widget.ArrayAdapter
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
-import androidx.appcompat.widget.Toolbar
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.Coil
+import coil.load
 import coil.request.ImageRequest
+import coil.transform.CircleCropTransformation
 import coil.transform.RoundedCornersTransformation
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
 import com.apollographql.apollo3.api.Optional
 import com.example.myanimection.R
 import com.example.myanimection.adapters.RecyclerCharacterAdapter
 import com.example.myanimection.adapters.RecyclerEpisodeAdapter
 import com.example.myanimection.controllers.AnimeMediaController
+import com.example.myanimection.controllers.FirestoreQueryCallback
 import com.example.myanimection.controllers.UserController
+import com.example.myanimection.models.AnimeCategory
 import com.example.myanimection.models.AnimeMediaDetailed
 import com.example.myanimection.models.ListedAnimeMedia
 import com.example.myanimection.repositories.AnimeMediaRepository
 import com.example.myanimection.utils.GridSpacingItemDecorator
+import com.example.myanimection.utils.Notifications
+import com.example.myanimection.utils.Utilities
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,8 +49,17 @@ class AnimeDetailFragment : Fragment() {
     private val animeMediaController = AnimeMediaController(AnimeMediaRepository())
     private val rvCharacterAdapter: RecyclerCharacterAdapter = RecyclerCharacterAdapter(arrayListOf())
     private val rvEpisodesAdapter: RecyclerEpisodeAdapter = RecyclerEpisodeAdapter(arrayListOf())
-    private lateinit var queriedAnime: AnimeMediaDetailed
+    private val queryCompleteCallback = object: FirestoreQueryCallback {
+        override fun onQueryComplete(success: Boolean) {
+            Notifications.shortToast(context!!, "Anime añadido a la lista.")
+        }
 
+        override fun onQueryFailure(exception: Exception) {
+            Notifications.shortToast(context!!, "Ha habido un problema al añadir el anime.")
+        }
+    }
+    private lateinit var queriedAnime: AnimeMediaDetailed
+    private lateinit var dialog: MaterialDialog
     private lateinit var imgPortrait: ImageView
     private lateinit var txtRomajiTitle: TextView
     private lateinit var txtNativeTitle: TextView
@@ -86,7 +108,6 @@ class AnimeDetailFragment : Fragment() {
     private fun setupMenu() {
         (requireActivity() as MainActivity).addMenuProvider(object : MenuProvider {
             override fun onPrepareMenu(menu: Menu) {
-
             }
 
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -96,33 +117,55 @@ class AnimeDetailFragment : Fragment() {
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                when(menuItem.itemId) {
-                   R.id.itemAddWatching -> {
-                       if (currentUser != null) {
-                           userController.addAnimeToList(currentUser.uid, arrayListOf(
-                               ListedAnimeMedia(queriedAnime.id, queriedAnime.romajiTitle!!, queriedAnime.bannerImageURl!!, 0, queriedAnime.episodes )
-                           ), UserController.ANIMELIST.WATCHING)
-                       }
+                   android.R.id.home -> {
+                       requireActivity().onBackPressedDispatcher.onBackPressed()
+                       return true
                    }
-                   R.id.itemAddComplete -> {
-                       if (currentUser != null) {
-                           userController.addAnimeToList(currentUser.uid, arrayListOf(
-                               ListedAnimeMedia(queriedAnime.id, queriedAnime.romajiTitle!!, queriedAnime.bannerImageURl!!, 0, queriedAnime.episodes )
-                           ), UserController.ANIMELIST.COMPLETED)
+                   R.id.itemAddAnime -> {
+                       dialog = MaterialDialog(context!!)
+                           .noAutoDismiss()
+                           .customView(R.layout.dialog_add_anime)
+                       dialog.findViewById<ImageView>(R.id.imgAddAnimeImage).load(imgPortrait.drawable) {transformations(CircleCropTransformation())}
+                       dialog.findViewById<TextView>(R.id.txtAddAnimeTitle).text = txtRomajiTitle.text
+                       val dialogWatchedEpisodes = dialog.findViewById<TextView>(R.id.txtAddAnimeWatched).apply { text = "0" }
+                       dialog.findViewById<TextView>(R.id.txtAddAnimeTotal).text = txtEpisodes.text
+                       val dialogSpinner = dialog.findViewById<Spinner>(R.id.spinAddAnimeCategory)
+                       ArrayAdapter.createFromResource(context!!, R.array.listed_categories, R.layout.ani_spin_item).also { adapter ->
+                           adapter.setDropDownViewResource(R.layout.ani_spin_dropdown_item)
+                           dialogSpinner.adapter = adapter
                        }
+                       dialog.findViewById<TextView>(R.id.txtAddAnimePositive).setOnClickListener {
+                           var watchedEpisodes = 0
+                           if (currentUser != null) {
+                               try {
+                                   watchedEpisodes = dialogWatchedEpisodes.text.toString().toInt()
+                               } catch (ex: NumberFormatException) {
+                                   watchedEpisodes  = 0
+                               }
+                               if (queriedAnime.episodes != null) {
+                                   if (watchedEpisodes  >= queriedAnime.episodes!!) {
+                                       watchedEpisodes = queriedAnime.episodes!!
+                                   }
+                               }
+                               dialogWatchedEpisodes.text = "$watchedEpisodes"
+                               userController.addAnimeToList(currentUser.uid, arrayListOf(
+                                   ListedAnimeMedia(queriedAnime.id,
+                                       queriedAnime.romajiTitle!!,
+                                       queriedAnime.bannerImageURl!!,
+                                       watchedEpisodes, queriedAnime.episodes,
+                                       AnimeCategory.valueOf(dialogSpinner.selectedItem.toString()))),
+                                   queryCompleteCallback)
+                           }
+                           dialog.dismiss()
+                       }
+
+                       dialog.findViewById<TextView>(R.id.txtAddAnimeNegative).setOnClickListener {
+                           dialog.dismiss()
+                       }
+                       dialog.show()
                    }
-                   R.id.itemAddPending -> {
-                       if (currentUser != null) {
-                           userController.addAnimeToList(currentUser.uid, arrayListOf(
-                               ListedAnimeMedia(queriedAnime.id, queriedAnime.romajiTitle!!, queriedAnime.bannerImageURl!!, 0, queriedAnime.episodes )
-                           ), UserController.ANIMELIST.PENDING)
-                       }
-                   }
-                   R.id.itemAddDropped -> {
-                       if (currentUser != null) {
-                           userController.addAnimeToList(currentUser.uid, arrayListOf(
-                               ListedAnimeMedia(queriedAnime.id, queriedAnime.romajiTitle!!, queriedAnime.bannerImageURl!!, 0, queriedAnime.episodes )
-                           ), UserController.ANIMELIST.DROPPED)
-                       }
+                   R.id.itemReviews -> {
+                       loadFragment(context!!, queriedAnime.id)
                    }
                }
                 return true
@@ -148,7 +191,7 @@ class AnimeDetailFragment : Fragment() {
                 Coil.imageLoader(requireContext()).enqueue(request)
                 txtRomajiTitle.text = queriedAnime.romajiTitle
                 txtNativeTitle.text = queriedAnime.nativeTitle
-                txtDescription.text = queriedAnime.description
+                txtDescription.text = queriedAnime.description?.replace(Regex("<br>"), "")
                 var genres = ""
                 for (i in queriedAnime.genres!!.indices) {
                     if (i != queriedAnime.genres!!.size-1) {
@@ -162,11 +205,23 @@ class AnimeDetailFragment : Fragment() {
                 txtStartDate.text = queriedAnime.startDate
                 txtEndDate.text = queriedAnime.endDate
                 txtStatus.text = queriedAnime.status!!.name
-                txtEpisodes.text = queriedAnime.episodes.toString()
-                rvCharacterAdapter.notifyItemRangeInserted(0, rvCharacterAdapter.itemCount-1)
-                rvEpisodesAdapter.notifyItemRangeInserted(0, rvEpisodesAdapter.itemCount-1)
+                txtEpisodes.text = if (queriedAnime.episodes != null) { queriedAnime.episodes.toString() } else { "?" }
+                rvCharacterAdapter.notifyDataSetChanged()
+                rvEpisodesAdapter.notifyDataSetChanged()
         }
         }
+    }
+
+    private fun loadFragment(context: Context, animeMediaId: Int) {
+        val fragment = AnimeDetailFragment()
+        val bundle = Bundle()
+        bundle.putInt("animeId", animeMediaId)
+        fragment.arguments = bundle
+        val navHostFragment = (context as AppCompatActivity)
+            .supportFragmentManager
+            .findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+        val navController = navHostFragment.navController
+        navController.navigate(R.id.action_animeDetailFragment_to_ReviewsFragment, bundle)
     }
 
 }

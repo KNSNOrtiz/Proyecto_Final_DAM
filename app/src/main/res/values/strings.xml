@@ -24,6 +24,12 @@
         <item>Mystery</item>
         <item>Romance</item>
     </string-array>
+    <string-array name="listed_categories">
+        <item>WATCHING</item>
+        <item>PENDING</item>
+        <item>DROPPED</item>
+        <item>COMPLETED</item>
+    </string-array>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

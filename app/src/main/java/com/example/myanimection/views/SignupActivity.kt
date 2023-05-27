@@ -1,6 +1,5 @@
 package com.example.myanimection.views
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
 import android.util.Log
@@ -8,10 +7,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.example.myanimection.R
+import com.example.myanimection.controllers.FirestoreQueryCallback
 import com.example.myanimection.controllers.UserController
 import com.example.myanimection.models.User
-import com.example.myanimection.models.UserLists
 import com.example.myanimection.utils.Notifications
 import com.google.firebase.auth.FirebaseAuth
 
@@ -62,17 +62,13 @@ class SignupActivity : AppCompatActivity() {
                     val additionalInfo = it.result.additionalUserInfo
                     if (additionalInfo != null) {
                         if (additionalInfo.isNewUser) {
-                            userController.isUserRegistered(user!!.uid, object: UserController.FirestoreQueryCallback {
+                            userController.isUserRegistered(user!!.uid, object: FirestoreQueryCallback {
                                 override fun onQueryComplete(success: Boolean) {
                                     if (!success) {
                                         //  Si el displayName es nulo ya que se hace desde un correo electrónico, se genera uno hasta la @  a partir del email dado.
                                         val displayName = user.displayName ?: user.email!!.substring(0, user.email!!.indexOf('@'))
                                         userController.addUser(
-                                            User(user.uid, displayName, user.email!!, UserLists(
-                                            arrayListOf(), arrayListOf(), arrayListOf(), arrayListOf()
-                                        )
-                                            )
-                                        )
+                                            User(user.uid, displayName, user.email!!, arrayListOf()))
                                     }
                                 }
                                 override fun onQueryFailure(exception: Exception) {

@@ -102,8 +102,8 @@ class HomeFragment : Fragment() {
         return view
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onResume() {
+        super.onResume()
         try{
             launchPageQuery()
         } catch (ex: RuntimeException){

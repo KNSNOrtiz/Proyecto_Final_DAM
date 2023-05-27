@@ -8,9 +8,8 @@ import com.afollestad.materialdialogs.MaterialDialog
 
 object Notifications : Application() {
 
-    val ANILIST_HOST = "https://graphql.anilist.co"
 
-    fun shortToast(context : Context, message : String){
+    fun shortToast(context: Context, message : String){
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
@@ -19,15 +18,16 @@ object Notifications : Application() {
         MaterialDialog(context).show {
             title(text = title)
             message (text = message)
-            positiveButton(text = "OK.")
+            positiveButton(text = "OK")
         }
     }
 
-    fun alertDialogOK(context: Context, title: String, message: String, positiveButtonClickListener: DialogCallback){
+    fun alertDialogOK(context: Context, title: String, message: String, positiveButtonClickListener: DialogCallback, negativeButtonClickListener: DialogCallback?){
         MaterialDialog(context).show {
             title(text = title)
             message (text = message)
-            positiveButton(text = "OK.", click = positiveButtonClickListener)
+            positiveButton(text = "OK", click = positiveButtonClickListener)
+            negativeButton(text = "NO", click = negativeButtonClickListener)
         }
     }
 

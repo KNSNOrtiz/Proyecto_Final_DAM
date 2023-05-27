@@ -1,18 +1,13 @@
 package com.example.myanimection.controllers
 
-import android.provider.MediaStore.Audio.Genres
-import android.util.Log
 import com.apollographql.apollo3.api.Optional
 import com.example.myanimection.PageAnimesQuery
 import com.example.myanimection.SearchAnimesQuery
-import com.example.myanimection.models.AnimeCharacter
 import com.example.myanimection.models.AnimeMapper
-import com.example.myanimection.models.AnimeMedia
 import com.example.myanimection.models.AnimeMediaDetailed
 import com.example.myanimection.repositories.AnimeMediaRepository
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlin.streams.toList
 
 class AnimeMediaController(private val repository: AnimeMediaRepository) {
 
@@ -21,20 +16,38 @@ class AnimeMediaController(private val repository: AnimeMediaRepository) {
     //  LANZAMIENTO DE COROUTINE (HILOS EN KOTLIN) CON LA CONSULTA.
     suspend fun getSingleAnime(id: Optional<Int?>): AnimeMediaDetailed? {
         val response = repository.singleAnime(id).data?.Media
+        var romaji = "Desconocido"
+        var native = "Desconocido"
+        var studio = "Desconocido"
+        var endDate = "No terminado"
+        if (response != null) {
+            if (response.title?.romaji != null) {
+                romaji = response.title.romaji
+            }
+            if (response.title?.native != null) {
+                native = response.title.native
+            }
+            if (response.studios?.nodes != null) {
+                studio = response.studios.nodes[0]?.name.toString()
+            }
+            if (response.endDate != null) {
+                if (response.endDate.year != null && response.endDate.month != null|| response.endDate.day != null) {
+                    endDate = "${response.endDate.day}/${response.endDate.month}/${response.endDate.year}"
+                }
+            }
+
+        }
         val animeResult: AnimeMediaDetailed? = if (response != null) {
             AnimeMediaDetailed(
                 response.id,
-                response.title?.romaji.toString(),
-                response.title?.native.toString(),
+                romaji,
+                native,
                 response.coverImage?.large.toString(),
                 response.genres,
                 response.description,
-                response.studios?.nodes
-                    ?.filterNotNull()
-                    ?.filter { it.isAnimationStudio }
-                    ?.map { it.name }.toString(),
-                "${response.startDate!!.day}/${response.startDate.month}/${response.startDate.year}",
-                "${response.endDate!!.day}/${response.endDate.month}/${response.endDate.year}",
+                studio,
+                "${response.startDate?.day}/${response.startDate?.month}/${response.startDate?.year}",
+                endDate,
                 response.episodes,
                 response.status,
                 response.characters?.nodes?.map(animeMapper::ToCharacter)!!.toList(),
