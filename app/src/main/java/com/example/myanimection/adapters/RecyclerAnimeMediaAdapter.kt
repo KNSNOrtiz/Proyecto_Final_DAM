@@ -19,7 +19,7 @@ import com.example.myanimection.R
 import com.example.myanimection.models.AnimeMedia
 import com.example.myanimection.views.AnimeDetailFragment
 
-class RecyclerHomeAnimeAdapter(var data: ArrayList<AnimeMedia?>): RecyclerView.Adapter<RecyclerHomeAnimeAdapter.ViewHolder>() {
+class RecyclerAnimeMediaAdapter(var data: ArrayList<AnimeMedia?>): RecyclerView.Adapter<RecyclerAnimeMediaAdapter.ViewHolder>() {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

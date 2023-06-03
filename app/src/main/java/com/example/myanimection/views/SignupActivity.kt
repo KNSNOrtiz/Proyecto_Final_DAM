@@ -1,19 +1,26 @@
 package com.example.myanimection.views
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import com.afollestad.materialdialogs.DialogCallback
 import com.example.myanimection.R
+import com.example.myanimection.controllers.FirestoreQueryCallback
+import com.example.myanimection.controllers.UserController
+import com.example.myanimection.models.User
 import com.example.myanimection.utils.Notifications
+import com.example.myanimection.utils.Utilities.USERNAME_REGEX
 import com.google.firebase.auth.FirebaseAuth
 
 class SignupActivity : AppCompatActivity() {
 
     lateinit var txtConfirmPassword : EditText
+    private var userController = UserController()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,15 +30,17 @@ class SignupActivity : AppCompatActivity() {
         val btnViewPassword: ImageButton = findViewById(R.id.btnViewPasswordSignUp)
         val txtEmail : TextView = findViewById(R.id.txtEmailSignUp)
         val txtPassword : EditText = findViewById(R.id.txtPasswordSignUp)
+        val txtUsername : EditText = findViewById(R.id.txtUsernameSignUp)
         txtConfirmPassword = findViewById(R.id.txtConfirmPasswordSignUp)
 
 
         var isPassVisible = false
 
         btnSignup.setOnClickListener {
-            var email = txtEmail.text.toString()
-            var password = txtPassword.text.toString()
-            signUp(email, password) }
+            val email = txtEmail.text.toString().trim()
+            val password = txtPassword.text.toString().trim()
+            val username = txtUsername.text.toString().trim()
+            signUp(username, email, password) }
 
         btnViewPassword.setOnClickListener {
             if (!isPassVisible){
@@ -47,14 +56,36 @@ class SignupActivity : AppCompatActivity() {
 
         }
     //  MÉTODO ENCARGADO DE CREAR USUARIOS CON EMAIL Y CONTRASEÑA.
-    private fun signUp(email:String, password:String){
-        if (validateFields(email,password)){
+    private fun signUp(username:String, email:String, password:String){
+        if (validateFields(username, email,password)){
             FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password).addOnCompleteListener {
                 if (it.isSuccessful){
-                    it.result.user?.sendEmailVerification()
-                    Notifications.alertDialogOK(this, "Usuario creado", "Se ha enviado " +
-                            "un enlace de verificación a tu email. Verífica tu usuario para completar el registro.")
-                } else{
+                    val user = it.result.user
+                    userController.isUsernameTaken(username, object: FirestoreQueryCallback {
+                        override fun onQueryComplete(success: Boolean) {
+                            if (!success && user != null) {
+                                userController.addUser(User(user.uid, username, user.email!!, arrayListOf(), username.lowercase()), object: FirestoreQueryCallback{
+                                    override fun onQueryComplete(success: Boolean) {
+                                        val dispatcher = onBackPressedDispatcher
+                                        user.sendEmailVerification()
+                                        Notifications.alertDialogOK(this@SignupActivity, "Usuario creado.", "Se ha enviado " +
+                                                "un enlace de verificación a tu email. Verífica tu usuario para completar el registro.",
+                                        positiveButtonClickListener = {dispatcher.onBackPressed() }, negativeButtonClickListener = null)
+
+                                    }
+                                    override fun onQueryFailure(exception: Exception) {
+                                        Notifications.shortToast(this@SignupActivity, "Hubo un error en el registro.")
+                                    }
+                                })
+                            } else {
+                                Notifications.shortToast(this@SignupActivity, "Ya existe un usuario con este nombre.")
+                            }
+                        }
+                        override fun onQueryFailure(exception: Exception) {
+                            Log.e("User query failed", "${exception.message}")
+                        }
+                    })
+                } else {
                     Notifications.shortToast(this, "Ya existe un usuario con este email.")
                 }
             }.addOnFailureListener {
@@ -63,12 +94,20 @@ class SignupActivity : AppCompatActivity() {
         }
     }
 
-    private fun validateFields(email:String, password:String) : Boolean{
-        if (email.isEmpty() || password.length < 6){
-            Notifications.shortToast(this, "El email está vacío o la contraseña no tiene la longitud mínima.")
+    private fun validateFields(username: String, email:String, password:String) : Boolean{
+        if (!username.trim().matches(USERNAME_REGEX)) {
+            Notifications.shortToast(this, "El nombre debe tener una longitud de entre 5 y 15 caracteres alfanuméricos.")
             return false
         }
-        if (txtConfirmPassword.text.toString() != password){
+        if (email.trim().isEmpty()){
+            Notifications.shortToast(this, "El email está vacío.")
+            return false
+        }
+        if (password.trim().length < 6) {
+            Notifications.shortToast(this, "La contraseña debe tener un mínimo de 6 caracteres.")
+            return false
+        }
+        if (txtConfirmPassword.text.trim().toString() != password){
             Notifications.shortToast(this, "Las contraseñas no coinciden.")
             return false
         }

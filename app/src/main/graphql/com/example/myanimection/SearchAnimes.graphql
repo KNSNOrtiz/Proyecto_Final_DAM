@@ -1,0 +1,22 @@
+query SearchAnimes($search: String, $genres: [String], $sort: [MediaSort]) {
+    Page (page: 1, perPage: 24) {
+        pageInfo {
+            total
+            currentPage
+            lastPage
+            hasNextPage
+            perPage
+        }
+        media(type: ANIME, genre_in: $genres, search: $search, isAdult: false, sort: $sort)  {
+            id
+            title {
+                native
+                romaji
+            }
+            coverImage {
+                large
+            }
+            genres
+        }
+    }
+}

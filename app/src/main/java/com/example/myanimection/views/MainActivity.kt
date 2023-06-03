@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -15,7 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var navigationView: BottomNavigationView
+    lateinit var navigationView: BottomNavigationView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,49 +26,21 @@ class MainActivity : AppCompatActivity() {
         navigationView = findViewById(R.id.navView)
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
-        val appBarConfiguration = AppBarConfiguration(setOf(R.id.HomeFragment, R.id.SearchFragment))
         val navController = navHostFragment.navController
 
+        val destinations = setOf(R.id.HomeFragment, R.id.SearchFragment, R.id.ProfileFragment)
+        val appBarConfiguration = AppBarConfiguration(destinations)
+        navController.addOnDestinationChangedListener { controller,  destination, bundle ->
+            if (destination.id in arrayOf(R.id.HomeFragment, R.id.SearchFragment, R.id.ProfileFragment)) {
+                navigationView.menu.findItem(destination.id)?.isChecked = true
+                navigationView.menu.setGroupCheckable(0, true, true)
+            } else {
+                navigationView.menu.setGroupCheckable(0, false, true)
+            }
+        }
+        setupActionBarWithNavController(navController, appBarConfiguration)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         navigationView.setupWithNavController(navController)
-
-
-
-        /*navigationView.setOnItemSelectedListener {
-            when(it.itemId) {
-                R.id.HomeNavigationButton -> {
-                    navController.navigate(R.id.action_HomeFragment_to_SearchFragment)
-                    /*fragmentContainerView.removeAllViews()
-                    supportFragmentManager.beginTransaction().add(R.id.fragmentContainerView, HomeFragment::class.java, null).commit()*/
-                    true
-                }
-                R.id.SearchNavigationButton -> {
-                    navController.navigate(R.id.action_SearchFragment_to_HomeFragment)
-                    /*fragmentContainerView.removeAllViews()
-                    supportFragmentManager.beginTransaction().add(R.id.fragmentContainerView, SearchFragment::class.java, null).commit()*/
-                    true
-                }
-                else -> false
-            }
-        }*/
-    }
-
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        val inflater : MenuInflater = menuInflater
-        inflater.inflate(R.menu.menu_action_home, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId){
-            R.id.itemLogOut -> {
-                FirebaseAuth.getInstance().signOut()
-                onBackPressedDispatcher.onBackPressed()
-                true
-            } else -> super.onOptionsItemSelected(item)
-
-        }
     }
 }

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
+    android:label="AnimeDetail"
     app:startDestination="@id/HomeFragment">
 
     <action
@@ -24,11 +25,11 @@
         android:id="@+id/HomeFragment"
         android:name="com.example.myanimection.views.HomeFragment"
         android:label="Home"
-        tools:layout="@layout/fragment_home"
         app:enterAnim="@anim/nav_default_enter_anim"
         app:exitAnim="@anim/nav_default_exit_anim"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-        app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"
+        tools:layout="@layout/fragment_home" />
     <fragment
         android:id="@+id/SearchFragment"
         android:name="com.example.myanimection.views.SearchFragment"
@@ -37,29 +38,65 @@
         app:exitAnim="@anim/nav_default_exit_anim"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
         app:popExitAnim="@anim/nav_default_pop_exit_anim"
-        tools:layout="@layout/fragment_search">
-    </fragment>
+        tools:layout="@layout/fragment_search" />
     <action
         android:id="@+id/action_HomeFragment_to_SearchFragment"
         app:destination="@id/SearchFragment"
         app:enterAnim="@anim/nav_default_enter_anim"
         app:exitAnim="@anim/nav_default_exit_anim"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-        app:popExitAnim="@anim/nav_default_pop_exit_anim"
-        />
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     <action
         android:id="@+id/action_SearchFragment_to_HomeFragment"
         app:destination="@id/HomeFragment"
         app:enterAnim="@anim/nav_default_enter_anim"
         app:exitAnim="@anim/nav_default_exit_anim"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-        app:popExitAnim="@anim/nav_default_pop_exit_anim"/>
+        app:popExitAnim="@anim/nav_default_pop_exit_anim" />
     <fragment
         android:id="@+id/animeDetailFragment"
         android:name="com.example.myanimection.views.AnimeDetailFragment"
-        android:label="AnimeDetailFragment"
+        android:label="Detalle"
         app:enterAnim="@anim/nav_default_enter_anim"
         app:exitAnim="@anim/nav_default_exit_anim"
         app:popEnterAnim="@anim/nav_default_pop_enter_anim"
         app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    <fragment
+        android:id="@+id/ProfileFragment"
+        android:name="com.example.myanimection.views.ProfileFragment"
+        android:label="Perfil"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"
+        tools:layout="@layout/fragment_profile" />
+    <action
+        android:id="@+id/action_HomeFragment_to_ProfileFragment"
+        app:destination="@id/ProfileFragment" />
+    <fragment
+        android:id="@+id/ReviewsFragment"
+        android:name="com.example.myanimection.views.ReviewsFragment"
+        android:label="Reseñas"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"
+        tools:layout="@layout/fragment_reviews" />
+
+    <action
+        android:id="@+id/action_animeDetailFragment_to_ReviewsFragment"
+        app:destination="@id/ReviewsFragment"/>
+    <fragment
+        android:id="@+id/AddReviewFragment"
+        android:name="com.example.myanimection.views.AddReviewFragment"
+        android:label="Escribir una reseña"
+        app:enterAnim="@anim/nav_default_enter_anim"
+        app:exitAnim="@anim/nav_default_exit_anim"
+        app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+        app:popExitAnim="@anim/nav_default_pop_exit_anim"
+        tools:layout="@layout/fragment_add_review" />
+
+    <action
+        android:id="@+id/action_ReviewsFragment_to_AddReviewFragment"
+        app:destination="@id/AddReviewFragment"/>
 </navigation>

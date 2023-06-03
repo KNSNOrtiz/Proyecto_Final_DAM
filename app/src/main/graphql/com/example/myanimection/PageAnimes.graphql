@@ -7,7 +7,7 @@ query PageAnimes($page: Int, $perPage: Int){
             hasNextPage
             perPage
         }
-        media(type: ANIME)  {
+        media(type: ANIME,  isAdult: false)  {
             id
             title {
                 native
