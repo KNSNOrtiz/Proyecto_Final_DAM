@@ -19,7 +19,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 class SignupActivity : AppCompatActivity() {
 
-    lateinit var txtConfirmPassword : EditText
+    private lateinit var txtConfirmPassword : EditText
     private var userController = UserController()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +42,7 @@ class SignupActivity : AppCompatActivity() {
             val username = txtUsername.text.toString().trim()
             signUp(username, email, password) }
 
+        //  Ver/Ocultar contraseña.
         btnViewPassword.setOnClickListener {
             if (!isPassVisible){
                 txtPassword.transformationMethod = null
@@ -55,9 +56,14 @@ class SignupActivity : AppCompatActivity() {
         }
 
         }
-    //  MÉTODO ENCARGADO DE CREAR USUARIOS CON EMAIL Y CONTRASEÑA.
+    /**  Método encargado de dar de alta usuarios mediante mediante email y contraseña.
+     * @param username  Nombre de usuario con el que se reconocerá al usuario en la aplicación.
+     * @param email     Email del usuario.
+     * @param password  Contraseña del usuario.
+     * */
     private fun signUp(username:String, email:String, password:String){
         if (validateFields(username, email,password)){
+            //  Alta del usuario en Firebase Authentication.
             FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password).addOnCompleteListener {
                 if (it.isSuccessful){
                     val user = it.result.user
@@ -66,11 +72,13 @@ class SignupActivity : AppCompatActivity() {
                             if (!success && user != null) {
                                 userController.addUser(User(user.uid, username, user.email!!, arrayListOf(), username.lowercase()), object: FirestoreQueryCallback{
                                     override fun onQueryComplete(success: Boolean) {
+                                        //  En versiones más recientes se debe usar el Dispatcher para volver atrás en la pila de actividades o vistas.
                                         val dispatcher = onBackPressedDispatcher
+                                        //  Correo de verificación.
                                         user.sendEmailVerification()
                                         Notifications.alertDialogOK(this@SignupActivity, "Usuario creado.", "Se ha enviado " +
                                                 "un enlace de verificación a tu email. Verífica tu usuario para completar el registro.",
-                                        positiveButtonClickListener = {dispatcher.onBackPressed() }, negativeButtonClickListener = null)
+                                        positiveButtonClickListener = { dispatcher.onBackPressed() }, negativeButtonClickListener = { dispatcher.onBackPressed() })
 
                                     }
                                     override fun onQueryFailure(exception: Exception) {
@@ -94,6 +102,12 @@ class SignupActivity : AppCompatActivity() {
         }
     }
 
+    /** Método encargado de validar los campos introducidos para el registro del usuario.
+     * @param username  Nombre de usuario con el que se reconocerá al usuario en la aplicación.
+     * @param email     Email del usuario.
+     * @param password  Contraseña del usuario.
+     * @return True si es válido, False si es inválido.
+     */
     private fun validateFields(username: String, email:String, password:String) : Boolean{
         if (!username.trim().matches(USERNAME_REGEX)) {
             Notifications.shortToast(this, "El nombre debe tener una longitud de entre 5 y 15 caracteres alfanuméricos.")

@@ -13,6 +13,11 @@ import coil.transform.RoundedCornersTransformation
 import com.example.myanimection.R
 import com.example.myanimection.models.AnimeCharacter
 
+/**
+ * Adaptador para mostrar personajes de anime en un RecyclerView.
+ *
+ * @property data Lista dinámica que contiene objetos de tipo [AnimeCharacter] para ser mostrados.
+ */
 class RecyclerCharacterAdapter(var data: ArrayList<AnimeCharacter>): RecyclerView.Adapter<RecyclerCharacterAdapter.ViewHolder>()  {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

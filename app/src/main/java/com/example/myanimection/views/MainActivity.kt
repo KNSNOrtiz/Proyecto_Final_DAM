@@ -14,8 +14,13 @@ import com.example.myanimection.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 
+/**
+ * Actividad principal que representa la pantalla principal de la aplicación.
+ * Gestiona la navegación entre los fragments mediante Navigation Component.
+ */
 class MainActivity : AppCompatActivity() {
 
+    //  Barra inferior de navegación que contiene las tres vistas principales de la aplicación.
     lateinit var navigationView: BottomNavigationView
 
 
@@ -25,11 +30,15 @@ class MainActivity : AppCompatActivity() {
 
         navigationView = findViewById(R.id.navView)
 
+        //  Asignación del controlador de navegación al contenedor que contiene las vistas en el MainActivity.
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
         val navController = navHostFragment.navController
 
+        //  Asignación de los diferentes destinos que tiene la navegación en la barra inferior.
         val destinations = setOf(R.id.HomeFragment, R.id.SearchFragment, R.id.ProfileFragment)
         val appBarConfiguration = AppBarConfiguration(destinations)
+
+        // Listener que detecta las navegaciones para decidir si se resalta el icono correspondiente en la barra inferior.
         navController.addOnDestinationChangedListener { controller,  destination, bundle ->
             if (destination.id in arrayOf(R.id.HomeFragment, R.id.SearchFragment, R.id.ProfileFragment)) {
                 navigationView.menu.findItem(destination.id)?.isChecked = true
@@ -39,8 +48,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         setupActionBarWithNavController(navController, appBarConfiguration)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-
         navigationView.setupWithNavController(navController)
     }
 }

@@ -19,6 +19,9 @@ import com.example.myanimection.utils.SpacingItemDecorator
 import com.example.myanimection.utils.Notifications
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
+/**
+ * Fragment que muestra las reseñas de un anime escritas por los usuarios y permite añadir o editar nuevas reseñas.
+ */
 class ReviewsFragment : Fragment() {
 
     private val reviews = arrayListOf<AnimeReview>()
@@ -53,6 +56,9 @@ class ReviewsFragment : Fragment() {
         return view
     }
 
+    /** Actualiza el RecyclerView de reseñas del anime.
+     * @param animeId ID del anime del que se mostrarán las reseñas.
+     */
     fun refreshList(animeId: Int) {
         reviewController.getReviewsFromAnime(animeId, object: ReviewController.ReviewsQueryCallback {
             override fun onQueryComplete(result: ArrayList<AnimeReview>) {
@@ -70,6 +76,9 @@ class ReviewsFragment : Fragment() {
 
     }
 
+    /**
+     * Configuración del menú de acción en cuanto el estado de la vista es Resumed.
+     */
     private fun setupMenu() {
         (requireActivity() as MainActivity).addMenuProvider(object : MenuProvider {
             override fun onPrepareMenu(menu: Menu) {
@@ -91,11 +100,15 @@ class ReviewsFragment : Fragment() {
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
+    /**
+     * Método que carga la pantalla de escritura de reseñas del anime.
+     *
+     * @param context Contexto de la aplicación.
+     * @param animeMediaId ID del anime del que se escribirá la reseña.
+     */
     private fun loadFragment(context: Context, animeMediaId: Int) {
-        val fragment = AnimeDetailFragment()
         val bundle = Bundle()
         bundle.putInt("animeId", animeMediaId)
-        fragment.arguments = bundle
         val navHostFragment = (context as AppCompatActivity)
             .supportFragmentManager
             .findFragmentById(R.id.fragmentContainerView) as NavHostFragment

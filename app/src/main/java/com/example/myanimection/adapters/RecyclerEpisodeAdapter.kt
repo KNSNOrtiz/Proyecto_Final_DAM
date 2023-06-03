@@ -19,7 +19,11 @@ import coil.transform.RoundedCornersTransformation
 import com.example.myanimection.R
 import com.example.myanimection.SingleAnimeQuery
 
-
+/**
+ * Adaptador para mostrar los episodios en CrunchyRoll de un anime, de haberlos.
+ *
+ * @property data Lista dinámica de los episodios de tipo [SingleAnimeQuery.StreamingEpisode] que se mostrarán en el RecyclerView.
+ */
 class RecyclerEpisodeAdapter (var data: ArrayList<SingleAnimeQuery.StreamingEpisode>): RecyclerView.Adapter<RecyclerEpisodeAdapter.ViewHolder>()  {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -50,7 +54,6 @@ class RecyclerEpisodeAdapter (var data: ArrayList<SingleAnimeQuery.StreamingEpis
             startActivity(holder.itemView.context, httpIntent, null)
         }
     }
-
 
     override fun getItemCount(): Int {
         return data.size

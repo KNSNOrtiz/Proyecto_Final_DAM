@@ -16,10 +16,15 @@ import coil.request.CachePolicy
 import coil.transform.CircleCropTransformation
 import com.example.myanimection.R
 import com.example.myanimection.controllers.UserController
+import com.example.myanimection.models.AnimeReview
 import com.example.myanimection.models.User
 import com.example.myanimection.views.AnimeDetailFragment
 import io.github.rosariopfernandes.firecoil.load
 
+/**
+ * Adaptador para mostrar usuarios en un RecyclerView.
+ * @param data La lista de [User] a mostrar.
+ */
 class RecyclerUserAdapter(var data: ArrayList<User>): RecyclerView.Adapter<RecyclerUserAdapter.ViewHolder>() {
     val userController = UserController()
 
@@ -36,6 +41,8 @@ class RecyclerUserAdapter(var data: ArrayList<User>): RecyclerView.Adapter<Recyc
             centerRadius = 30f
             start()
         }
+        /*  Se carga la imagen con las políticas de caché deshabilitadas para contar siempre con la última imagen
+        *  que el usuario ha establecido sin necesidad de reiniciar la aplicación. */
         holder.imgUserPic.load(userController.getUserProfilePic(user.uid)) {
             placeholder(circularProgressDrawable)
             error(R.drawable.ic_profile)
@@ -69,6 +76,10 @@ class RecyclerUserAdapter(var data: ArrayList<User>): RecyclerView.Adapter<Recyc
         }
     }
 
+    /** Método que carga el fragment con la vista del perfil del usuario.
+     * @param context   Contexto de la aplicación
+     * @param uid       ID del usuario cuyo perfil se quiere visitar.
+     */
     private fun loadFragment(context: Context, uid: String) {
         val fragment = AnimeDetailFragment()
         val bundle = Bundle()

@@ -1,12 +1,10 @@
 package com.example.myanimection.views
 
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +12,7 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import com.afollestad.materialdialogs.MaterialDialog
+import androidx.fragment.app.Fragment
 import com.example.myanimection.R
 import com.example.myanimection.controllers.FirestoreQueryCallback
 import com.example.myanimection.controllers.ReviewController
@@ -25,7 +23,8 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 
-
+/** Fragment donde se añaden o editan reseñas.
+ */
 class AddReviewFragment : Fragment() {
 
     private lateinit var txtTitle: TextView
@@ -91,6 +90,9 @@ class AddReviewFragment : Fragment() {
         spinScoreAdapter.setDropDownViewResource(R.layout.ani_spin_dropdown_item)
         spinScore.adapter = spinScoreAdapter
 
+        /* Para evitar mayores complicaciones haciendo que la review sea Serializable o Parcelable para transferirla de una vista a otra,
+            he optado por convertirla a formato JSON para poder desconvertirla en la vista actual y solamente tener que pasar un
+            String.*/
         if (reviewRawData != null && reviewRawData.isNotEmpty()) {
             val gson = Gson()
             val reviewData = gson.fromJson(reviewRawData, AnimeReview::class.java)
@@ -100,6 +102,8 @@ class AddReviewFragment : Fragment() {
             spinScore.setSelection(reviewData.score-1)  //  Al ser una nota del 1 al 10 en orden, se escoge la posición restando 1 a la nota.
         }
 
+        //  Si la ID del anime es 0 quiere decir que no se ha podido cargar, ya que los IDs empiezan desde 1 en adelante.
+        //  Por tanto no se puede mandar la reseña y cancelo el evento.
         btnSubmit.setOnClickListener {
             if (animeMediaId == 0) {
                 Notifications.alertDialogOK(view.context, "Error de carga","Hubo un problema al cargar el anime a reseñar.")
@@ -114,6 +118,7 @@ class AddReviewFragment : Fragment() {
                     val review = AnimeReview(animeMediaId,uid, title, body, score, arrayListOf() )
                     reviewController.reviewExists(review, object: FirestoreQueryCallback {
                         override fun onQueryComplete(success: Boolean) {
+                            //  Si la reseña existe, pregunta si se desea reemplazar.
                             if (success) {
                                 Notifications.alertDialogOK(view.context, "Ya existe una reseña", "¿Deseas reemplezarla?",
                                     positiveButtonClickListener = { dialog ->
@@ -136,6 +141,7 @@ class AddReviewFragment : Fragment() {
                                         dialog.dismiss()
                                     }
                                 )
+                                //  En caso contrario, se añadirá normalmente.
                             } else {
                                 reviewController.addReview(review, object: FirestoreQueryCallback {
                                     override fun onQueryComplete(success: Boolean) {
@@ -154,7 +160,8 @@ class AddReviewFragment : Fragment() {
                             }
                         }
                         override fun onQueryFailure(exception: Exception) {
-                            TODO("Not yet implemented")
+                            Notifications.shortToast(view.context, "No se ha podido comprobar la existencia de la reseña.")
+                            Log.e("AddReview", exception.message.toString())
                         }
                     })
                 }

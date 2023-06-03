@@ -44,7 +44,9 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
+/**
+ * Fragment que representa la vista detalle de un anime.
+ */
 class AnimeDetailFragment : Fragment() {
 
     private val userController = UserController()
@@ -52,6 +54,8 @@ class AnimeDetailFragment : Fragment() {
     private val animeMediaController = AnimeMediaController(AnimeMediaRepository())
     private val rvCharacterAdapter: RecyclerCharacterAdapter = RecyclerCharacterAdapter(arrayListOf())
     private val rvEpisodesAdapter: RecyclerEpisodeAdapter = RecyclerEpisodeAdapter(arrayListOf())
+
+    //  Instancia del callback de Firestore que muestra una notificación en función del resultado.
     private val queryCompleteCallback = object: FirestoreQueryCallback {
         override fun onQueryComplete(success: Boolean) {
             Notifications.shortToast(context!!, "Anime añadido a la lista.")
@@ -150,6 +154,9 @@ class AnimeDetailFragment : Fragment() {
         return view
     }
 
+    /**
+     * Configuración del Action Menu que se muestra en la vista. Se activa cuando la vista entra en el estado Resumed.
+     */
     private fun setupMenu() {
         (requireActivity() as MainActivity).addMenuProvider(object : MenuProvider {
             override fun onPrepareMenu(menu: Menu) {
@@ -247,13 +254,18 @@ class AnimeDetailFragment : Fragment() {
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
+    /**
+     * Lanzamiento de corutina en el hilo de Entrada/Salida para obtener los detalles del anime.
+     * A la vez, se asignan los valores del anime a la vista y se refrescan los RecyclerView de personajes y episodios.
+     */
     private fun launchSingleAnimeQuery() = lifecycleScope.launch (Dispatchers.IO) {
+        //  Obtención de la ID del anime que se va a detallar en la vista.
         val animeMediaId = arguments?.getInt("animeId", 1) ?: 1
         val response = animeMediaController.getSingleAnime(Optional.present(animeMediaId))
         if (response != null) {
             queriedAnime = response
             rvCharacterAdapter.data.addAll(queriedAnime.characters)
-            rvEpisodesAdapter.data.addAll(queriedAnime.streamingEpisode?.filterNotNull()!!.toList())
+            rvEpisodesAdapter.data.addAll(queriedAnime.streamingEpisodes?.filterNotNull()!!.toList())   //  Obtiene los capítulos no nulos.
             lifecycleScope.launch(Dispatchers.Main) {
                 val request = ImageRequest.Builder(requireContext())
                     .data(queriedAnime.bannerImageURl)
@@ -283,12 +295,14 @@ class AnimeDetailFragment : Fragment() {
                 rvCharacterAdapter.notifyDataSetChanged()
                 rvEpisodesAdapter.notifyDataSetChanged()
 
+                /*  Se muestran u ocultan los desplegables de los personajes/episodios en función de si tienen contenido o no
+                    las listas. */
                 if (queriedAnime.characters.isEmpty()) {
                     cvCharacters.visibility = View.GONE
                     txtLabelCharacters.visibility = View.GONE
                 }
 
-                if (queriedAnime.streamingEpisode!!.isEmpty()) {
+                if (queriedAnime.streamingEpisodes!!.isEmpty()) {
                     cvEpisodes.visibility = View.GONE
                     txtLabelStreamingEpisodes.visibility = View.GONE
                 }
@@ -296,6 +310,9 @@ class AnimeDetailFragment : Fragment() {
         }
     }
 
+    /** Método que carga el fragment con las reseñas del anime que se está visitando en este momento.
+     *  @param context          Contexto de la aplicación.
+     *  @param animeMediaId     ID del anime cuyas reseñas se quieren ver.*/
     private fun loadFragment(context: Context, animeMediaId: Int) {
         val fragment = AnimeDetailFragment()
         val bundle = Bundle()

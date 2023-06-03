@@ -26,7 +26,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Math.abs
 
-
+/**
+ * Fragment que representa la vista de inicio o Home, donde se muestra un catálogo de animes paginado.
+ */
 class HomeFragment : Fragment() {
 
     private val animeMediaController = AnimeMediaController(AnimeMediaRepository())
@@ -68,7 +70,6 @@ class HomeFragment : Fragment() {
                 animateCardView(-cardViewRV.width.toFloat())
             }
         }
-
 
         rvAnimeHome.addItemDecoration(SpacingItemDecorator(2, 30, false))
         rvAnimeHome.adapter = rvAnimeHomeAnimeAdapter
@@ -125,7 +126,11 @@ class HomeFragment : Fragment() {
             Log.d("NOT FOUND", "Animes no encontrados.")
         }
     }
-    //  Lanzamiento de corutina en un hilo de lectura/escritura.
+
+    /**
+     * Lanzamiento de corutina en el hilo de Entrada/Salida para obtener los detalles del anime.
+     * A la vez, se asignan los valores del anime a la vista y se refrescan los RecyclerView de personajes y episodios.
+     */
      private fun launchPageQuery() = lifecycleScope.launch(Dispatchers.IO) {
             myAnimeList.clear()
             val response =  animeMediaController.getPageAnimes(Optional.present(currentPage), Optional.present(30))
@@ -148,7 +153,9 @@ class HomeFragment : Fragment() {
         }
 
 
-    //  Lanzamiento de una nueva corutina en cuanto se ha obtenido el resultado de esta primera llamada, esta vez en el hilo de la interfaz.
+    /**
+     * Lanzamiento de corutina en el hilo principal para refrescar la vista con los datos nuevos que han llegado
+     * de la consulta de GraphQL.*/
     private fun refreshAnimeHome() = lifecycleScope.launch(Dispatchers.Main) {
         rvAnimeHome.recycledViewPool.clear()
         val previousSize = rvAnimeHomeAnimeAdapter.itemCount
@@ -162,8 +169,12 @@ class HomeFragment : Fragment() {
         Log.d("AnimeCount", "${rvAnimeHome.adapter?.itemCount}")
     }
 
-
+    /** Método encargado de proporcionar una animación de desplazamiento horizontal al Cardview
+     * que representa una página del catálogo de animes
+     * @param offset El valor que tiene el desplazamiento a realizar en la animación.
+     */
     fun animateCardView(offset: Float) {
+        //  Animación que mueve el CardView en el eje horizontal.
         val animator = ValueAnimator.ofFloat(0f, offset)
         animator.addUpdateListener { valueAnimator ->
             val animatedValue = valueAnimator.animatedValue as Float
@@ -172,6 +183,7 @@ class HomeFragment : Fragment() {
         animator.duration = 300
         animator.interpolator = AccelerateDecelerateInterpolator()
         animator.addListener(object : AnimatorListenerAdapter() {
+            //  Cuando la animación termina, el CardView vuelve a su sitio original en el mismo tiempo y con la misma animación, pero inversa.
             override fun onAnimationEnd(animation: Animator) {
                 val animatorReverse = ValueAnimator.ofFloat(offset, 0f)
                 animatorReverse.addUpdateListener { valueAnimator ->
@@ -188,6 +200,4 @@ class HomeFragment : Fragment() {
         // DESPUÉS DE LANZAR LA ANIMACIÓN, REFRESCO LOS DATOS
         launchPageQuery()
     }
-
-
 }

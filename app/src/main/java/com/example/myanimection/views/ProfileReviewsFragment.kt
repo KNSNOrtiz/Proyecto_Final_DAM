@@ -14,6 +14,10 @@ import com.example.myanimection.controllers.ReviewController
 import com.example.myanimection.models.AnimeReview
 import com.example.myanimection.utils.SpacingItemDecorator
 
+/**
+ * Fragment que muestra las reseñas escritas por un usuario en su perfil.
+ * @param uidSearch El ID del usuario cuyas reseñas van a mostrar.
+ */
 class ProfileReviewsFragment(private val uidSearch: String) : Fragment() {
 
     private lateinit var rvReviews: RecyclerView
@@ -44,6 +48,9 @@ class ProfileReviewsFragment(private val uidSearch: String) : Fragment() {
         refreshList()
     }
 
+    /**
+     * Método que actualiza el RecyclerView que contiene las listas del usuario en cuanto se han recuperado de Firestore.
+     */
     fun refreshList() {
         reviewController.getReviewsFromUser(uidSearch, object: ReviewController.ReviewsQueryCallback {
             override fun onQueryComplete(result: ArrayList<AnimeReview>) {
@@ -59,5 +66,4 @@ class ProfileReviewsFragment(private val uidSearch: String) : Fragment() {
             }
         })
     }
-
 }
