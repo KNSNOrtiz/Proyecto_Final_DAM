@@ -65,7 +65,7 @@ class SearchUserFragment : Fragment() {
                     override fun run() {
                         if (s?.length!! > 0){
                             if (isSearchEnabled) {
-                                userController.getUserByUsername(userName, object: UserController.UserListQueryCallback{
+                                userController.getUsersByUsername(userName, object: UserController.UserListQueryCallback{
                                     override fun onQueryComplete(result: ArrayList<User>) {
                                         refreshRecyclerView(result)
                                     }

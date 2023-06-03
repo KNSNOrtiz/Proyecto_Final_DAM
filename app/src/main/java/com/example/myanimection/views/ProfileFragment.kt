@@ -29,7 +29,9 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
-
+/** Fragment que muestra el perfil de un usuario. Permite ver y editar la información del perfil,
+ *  y al mismo tiempo cambiar la imagen de perfil y mostrar las listas de anime y las reseñas de dicho usuario.
+ */
 class ProfileFragment : Fragment() {
 
     private val userController = UserController()
@@ -46,6 +48,7 @@ class ProfileFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //  Launcher que abre la galería del teléfono para seleccionar la imagen que se quiere establecer como perfil.
         imageChooseLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK ) {
                 selectedImageUri = result.data?.data
@@ -93,6 +96,7 @@ class ProfileFragment : Fragment() {
             }
         }
 
+        //  Configuración de la vista de las pestañas de animes y reseñas.
         viewPager.adapter = ViewPagerProfileAdapter(mainActivity, profileUID)
         tabLayout.addOnTabSelectedListener(object: OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -109,7 +113,7 @@ class ProfileFragment : Fragment() {
 
             }
         })
-
+        //  Unión del TabLayout con el ViewPager.
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             when(position) {
                 0 -> tab.text = "ANIME"
@@ -117,6 +121,7 @@ class ProfileFragment : Fragment() {
             }
         }.attach()
 
+        //  Si se ha podido cargar una UID, se cargarán los datos pertinentes.
         if (profileUID.isNotEmpty()) {
             userController.getUser(profileUID, object: UserController.UserQueryCallback {
                 override fun onQueryComplete(result: User) {
@@ -128,12 +133,13 @@ class ProfileFragment : Fragment() {
                     Log.e("PROFILE", exception.message.toString())
                 }
             })
-
             loadUserPic()
         }
         return view
     }
-
+    /**
+     * Carga la imagen de perfil del usuario para mostrarla en un ImageView.
+     */
     private fun loadUserPic() {
         if (profileUID.isNotEmpty()) {
             userController.getUserProfilePic(profileUID).downloadUrl.addOnCompleteListener {
@@ -154,7 +160,4 @@ class ProfileFragment : Fragment() {
         }
 
     }
-
-
-
 }

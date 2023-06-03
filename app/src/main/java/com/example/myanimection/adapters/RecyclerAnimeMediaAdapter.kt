@@ -19,8 +19,12 @@ import com.example.myanimection.R
 import com.example.myanimection.models.AnimeMedia
 import com.example.myanimection.views.AnimeDetailFragment
 
+/**
+ * Adaptador para mostrar animes en un RecyclerView.
+ *
+ * @property data Lista dinámica que contiene objetos [AnimeMedia] para mostrarlos en el RecyclerView.
+ */
 class RecyclerAnimeMediaAdapter(var data: ArrayList<AnimeMedia?>): RecyclerView.Adapter<RecyclerAnimeMediaAdapter.ViewHolder>() {
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.viewholder_anime, parent, false)
@@ -28,15 +32,18 @@ class RecyclerAnimeMediaAdapter(var data: ArrayList<AnimeMedia?>): RecyclerView.
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+
+        //  Círculo de cargar como placeholder.
         val circularProgressDrawable = CircularProgressDrawable(holder.itemView.context).apply {
             strokeWidth = 5f
             centerRadius = 30f
             start()
         }
+        // Carga de la imagen mediante Coil de forma asíncrona usando ImageLoader.
         val request = ImageRequest.Builder(holder.itemView.context)
             .data(data[position]?.bannerImageURl)
             .placeholder(circularProgressDrawable)
-            .transformations(RoundedCornersTransformation(50f))
+            .transformations(RoundedCornersTransformation(50f)) //  Transformación de la imagen para que aparezca redonda.
             .target {
                 holder.imgCover.setImageDrawable(it)
             }
@@ -65,6 +72,12 @@ class RecyclerAnimeMediaAdapter(var data: ArrayList<AnimeMedia?>): RecyclerView.
         }
     }
 
+    /**
+     * Carga un fragment con la vista detallada del anime que se ha seleccionado.
+     *
+     * @param context Contexto de la aplicación.
+     * @param animeMediaId El ID del anime que se ha seleccionado en el OnClick.
+     */
     private fun loadFragment(context: Context, animeMediaId: Int) {
         val fragment = AnimeDetailFragment()
         val bundle = Bundle()

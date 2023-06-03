@@ -20,6 +20,10 @@ import com.example.myanimection.models.AnimeCategory
 import com.example.myanimection.models.ListedAnimeMedia
 import com.example.myanimection.utils.SpacingItemDecorator
 
+
+/** Fragment que muestra la lista de animes listados en el perfil de un usuario.
+ * @param uidSearch ID del usuario propietario de las listas.
+ */
 class ProfileAnimesFragment(private val uidSearch: String) : Fragment() {
     private lateinit var spinListedAnimeCategories: Spinner
     private lateinit var rvListedAnimes: RecyclerView
@@ -38,6 +42,8 @@ class ProfileAnimesFragment(private val uidSearch: String) : Fragment() {
         rvListedAnimes = view.findViewById(R.id.rvListedAnimes)
         btnRefresh = view.findViewById(R.id.btnListedAnimeRefresh)
         rvListedAnimes.layoutManager = LinearLayoutManager(context)
+
+        // Asignación del Listener que espera cambios en las listas para refrescar el RecyclerView.
         listedAnimesAdapter.animeChangedListener = object : RecyclerListedAnimeAdapter.AnimeChangedListener {
             override fun notifyRecyclerView() {
                 refreshList()
@@ -69,17 +75,19 @@ class ProfileAnimesFragment(private val uidSearch: String) : Fragment() {
 
             }
         }
-
         btnRefresh.setOnClickListener { refreshList() }
         return view
     }
 
+    //  Cada vez que se vuelva a la vista se refrescaran los animes.
     override fun onResume() {
         super.onResume()
         refreshList()
     }
 
-
+    /**
+     * Actualiza la lista de animes listados en función de la categoría seleccionada.
+     */
     fun refreshList() {
         val category = enumValueOf<AnimeCategory>(spinListedAnimeCategories.selectedItem.toString())
         userController.getUserAnimes(uidSearch, category, object: UserController.ListedAnimeQueryCallback {

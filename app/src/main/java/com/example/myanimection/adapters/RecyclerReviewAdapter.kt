@@ -39,8 +39,16 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Adaptador para mostrar reseñas en un RecyclerView.
+ * @param data La lista de [AnimeReview] a mostrar.
+ * @param isUserProfile Flag para indicar si se está viendo desde un perfil de usuario o no.
+ */
 class RecyclerReviewAdapter(var data: ArrayList<AnimeReview>, private var isUserProfile: Boolean): RecyclerView.Adapter<RecyclerReviewAdapter.ViewHolder>() {
 
+    /**
+     * Interfaz que notifica al RecyclerView de los cambios en las reseñas.
+     */
     interface ReviewChangedListener {
         fun notifyRecyclerView()
     }
@@ -64,6 +72,8 @@ class RecyclerReviewAdapter(var data: ArrayList<AnimeReview>, private var isUser
             centerRadius = 30f
             start()
         }
+        /*  Se carga la imagen con las políticas de caché deshabilitadas para contar siempre con la última imagen
+         *  que el usuario ha establecido sin necesidad de reiniciar la aplicación. */
         holder.imgUserPic.load(userController.getUserProfilePic(review.uid)) {
             placeholder(circularProgressDrawable)
             error(R.drawable.ic_profile)
@@ -75,8 +85,10 @@ class RecyclerReviewAdapter(var data: ArrayList<AnimeReview>, private var isUser
         holder.txtBody.text = review.body
         holder.txtLikes.text = "${review.likes.size}"
         holder.txtScore.text = "${review.score}"
-        //  Petición a la API para obtener el nombre del anime, para añadir mayor contexto a las reseñas desde la pestaña de perfil.
+        //  Petición a la API para obtener el nombre del anime, para añadir mayor contexto a las reseñas desde la pestaña de perfil y poder acceder a los detalles.
         if (isUserProfile) {
+            //  Lanzador de corutinas desde el Scope global, lo que quiere decir que se ejecuta a nivel de toda la aplicación y se mata el hilo en cuanto terminan
+            //  su tarea. Es similar a lanzar un hilo mediante run() en Java.
             GlobalScope.launch(Dispatchers.IO) {
                 val animeTitle = animeMediaController.getAnimeTitle(Optional.present(review.animeId))
                 withContext(Dispatchers.Main) {
@@ -128,6 +140,7 @@ class RecyclerReviewAdapter(var data: ArrayList<AnimeReview>, private var isUser
                         loadReviewFragment(v.context, review)
                         true
                     }
+                    //  Eliminación de reseñas con confirmación pro parte del usuario.
                     R.id.itemReviewRemove -> {
                         Notifications.alertDialogOK(v.context, "Eliminar reseña", "¿Estás seguro de querer borrarla?",
                         positiveButtonClickListener = { dialog ->
@@ -182,7 +195,6 @@ class RecyclerReviewAdapter(var data: ArrayList<AnimeReview>, private var isUser
                 holder.txtLikes.text = "${review.likes.size}"
             }
         }
-
         if (reviewController.isLiked(Firebase.auth.currentUser!!.uid, review.likes)) {
             holder.btnLike.setImageResource(R.drawable.ic_like_activated)
         } else {
@@ -231,6 +243,11 @@ class RecyclerReviewAdapter(var data: ArrayList<AnimeReview>, private var isUser
         val navController = navHostFragment.navController
         navController.navigate(R.id.action_HomeFragment_to_animeDetailFragment, bundle)
     }
+    /**
+     * Método que carga el fragmento con el perfil del usuario que ha escrito la reseña.
+     * @param context   Contexto de la aplicación.
+     * @param uid       ID del usuario que ha escrito la reseña.
+     */
     private fun loadUserFragment(context: Context, uid: String) {
         val fragment = ProfileFragment()
         val bundle = Bundle()
@@ -243,6 +260,11 @@ class RecyclerReviewAdapter(var data: ArrayList<AnimeReview>, private var isUser
         navController.navigate(R.id.action_HomeFragment_to_ProfileFragment, bundle)
     }
 
+    /**
+     * Método que carga el fragmento con la vista de edición de reseñas con los datos de la actual.
+     * @param context   Contexto de la aplicación
+     * @param review    Datos de la reseña que se va a editar.
+     */
     private fun loadReviewFragment(context: Context, review: AnimeReview) {
         val fragment = AddReviewFragment()
         val bundle = Bundle()

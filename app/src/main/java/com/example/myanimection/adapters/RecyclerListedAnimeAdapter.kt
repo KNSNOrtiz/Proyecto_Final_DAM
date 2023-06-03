@@ -32,9 +32,17 @@ import com.example.myanimection.views.AnimeDetailFragment
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
-
+/**
+ * Adaptador para mostrar los animes listados en un usuario en un RecyclerView.
+ *
+ * @property data Lista dinámica de [ListedAnimeMedia] que serán mostrados.
+ * @property uidSearch El ID del usuario al que pertenecen los [ListedAnimeMedia].
+ */
 class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>, private var uidSearch: String): RecyclerView.Adapter<RecyclerListedAnimeAdapter.ViewHolder>() {
 
+    /**
+     * Interfaz que notifica al RecyclerView de los cambios en los animes.
+     */
     interface AnimeChangedListener {
         fun notifyRecyclerView()
     }
@@ -96,11 +104,13 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>, private
         if (listedAnime.category == AnimeCategory.COMPLETED || Firebase.auth.currentUser!!.uid != uidSearch) {
             holder.txtWatchedEpisodes.inputType = InputType.TYPE_NULL
         }
+        // Alteración del comportamiento de la tecla Enter cuando se modifican los episodios en la lista de anime para que sean actualizados en Firestore.
         holder.txtWatchedEpisodes.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
                 val userController = UserController()
                 if (Firebase.auth.currentUser != null) {
                     listedAnime.watchedEpisodes = holder.txtWatchedEpisodes.text.toString().toInt()
+                    //  Si el anime no está completado y el usuario ha visto todos los episodios, se le ofrecerá cambiarlo de categoría para mayor comodidad.
                     if (listedAnime.totalEpisodes != null && listedAnime.watchedEpisodes >= listedAnime.totalEpisodes && listedAnime.category != AnimeCategory.COMPLETED) {
                         listedAnime.watchedEpisodes = listedAnime.totalEpisodes
                         Notifications.alertDialogOK(holder.itemView.context, "Has visto todos los episodios", "¿Quieres marcar el anime como completado?",
@@ -123,13 +133,14 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>, private
             false
         })
 
+        //  Menú contextual del anime.
         holder.cvListedAnime.setOnLongClickListener { v ->
             val popupMenu = PopupMenu(v.context, v)
             popupMenu.inflate(R.menu.menu_popup_listedanime)
             val menu = popupMenu.menu
             val itemEdit = menu.findItem(R.id.itemListedAnimeEdit)
             val itemRemove = menu.findItem(R.id.itemListedAnimeRemove)
-
+            //  Si las listas de anime se están viendo desde un perfil que no es el del usuario logeado, se ocultarán ciertas opciones por seguridad.
             if (Firebase.auth.currentUser?.uid != uidSearch) {
                 itemEdit.isVisible = false
                 itemRemove.isVisible = false
@@ -140,6 +151,7 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>, private
                         loadFragment(v.context, listedAnime.id)
                         true
                     }
+                    //  Cuadro de diálogo con vista personalizada para gestionar el anime.
                     R.id.itemListedAnimeEdit -> {
                         val dialog = MaterialDialog(v.context)
                             .noAutoDismiss()
@@ -170,6 +182,7 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>, private
                                     }
                                 }
                                 dialogWatchedEpisodes.text = "$watchedEpisodes"
+                                //  Si el anime está en la lista, se sobreescribirá. Si no lo está, se editará.
                                 userController.isAnimeListed(Firebase.auth.currentUser!!.uid, listedAnime.id, object: FirestoreQueryCallback {
                                     override fun onQueryComplete(success: Boolean) {
                                         if (!success) {
@@ -190,14 +203,10 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>, private
                                                 queryCallback)
                                         }
                                     }
-
                                     override fun onQueryFailure(exception: Exception) {
                                         Notifications.shortToast(v.context, "Hubo un error al recuperar el anime de la lista.")
                                     }
                                 })
-
-
-
                             }
                             dialog.dismiss()
                         }
@@ -208,6 +217,7 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>, private
                         dialog.show()
                         true
                     }
+                    //  Eliminación del anime con confirmación del usuario.
                     R.id.itemListedAnimeRemove -> {
                         if (Firebase.auth.currentUser != null) {
                             Notifications.alertDialogOK(v.context, "Eliminar anime", "¿Estás seguro de querer eliminarlo?",
@@ -253,6 +263,7 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>, private
         }
     }
 
+    //  Cargar fragmento con la vista detalle del anime en caso de elegir la opción del menú contextual o tocar la imagen.
     private fun loadFragment(context: Context, animeMediaId: Int) {
         val fragment = AnimeDetailFragment()
         val bundle = Bundle()

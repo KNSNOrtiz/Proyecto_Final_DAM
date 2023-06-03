@@ -30,6 +30,9 @@ import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.collections.ArrayList
 
+/**
+ * Fragment que permite buscar animes y filtrar los resultados.
+ */
 class SearchAnimeFragment : Fragment() {
 
     private val myAnimeList = ArrayList<AnimeMedia?>()
@@ -40,6 +43,7 @@ class SearchAnimeFragment : Fragment() {
     private lateinit var rvSearchAnime: RecyclerView
     private lateinit var btnFilter: Button
 
+    //  Flag para controlar que no se realice la búsqueda cada vez que se entra a la vista.
     private var isSearchEnabled = false
 
     override fun onCreateView(
@@ -56,11 +60,11 @@ class SearchAnimeFragment : Fragment() {
             var startDate: MediaSort?
             var genres: ArrayList<String>
 
+            //  Cuadro de diálogo personalizado que permite filtrar los animes en base a unos criterios que permite la API.
             val dialog = MaterialDialog(view.context)
                 .noAutoDismiss()
                 .customView(R.layout.dialog_filter_anime)
                 .title(text = "Filtrar Animes")
-
             val romajiFilter = dialog.findViewById<RadioGroup>(R.id.rbgAnimeFilterRomaji)
             val startDateFilter = dialog.findViewById<RadioGroup>(R.id.rbgAnimeFilterStartDate)
             val spinGenre1 = dialog.findViewById<Spinner>(R.id.spinAnimeFilterGenre)
@@ -76,6 +80,7 @@ class SearchAnimeFragment : Fragment() {
                 spinGenre3.adapter = adapter
             }
 
+            //  MediaSort es un enum generado por Apollo a partir del esquema de GraphQL de la API que contiene criterios de ordenación.
             positiveButton.setOnClickListener {
                 romaji = when (romajiFilter.checkedRadioButtonId) {
                     R.id.rbAnimeFilterRomajiASC -> MediaSort.TITLE_ROMAJI
@@ -104,12 +109,14 @@ class SearchAnimeFragment : Fragment() {
         rvSearchAnime.addItemDecoration(SpacingItemDecorator(2, 30, false))
         rvSearchAnime.layoutManager = GridLayoutManager(context, 2)
 
+        //  No se activará la búsqueda hasta que no se establezca el foco en la barra de búsqueda al menos una vez.
         txtSearch.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) {
                 isSearchEnabled = true
             }
         }
 
+        //  Listener que escucha cuando el usuario deja de escribir para realizar automáticamente una búsqueda sin filtros.
         txtSearch.addTextChangedListener (object: TextWatcher {
             private val DELAY_MILLIS = 500L
             private var timer: Timer? = null
@@ -129,6 +136,7 @@ class SearchAnimeFragment : Fragment() {
                     override fun run() {
                         if (s?.length!! > 0){
                             if (isSearchEnabled) {
+                                //  Búsqueda por texto sin ningún filtro.
                                 launchSearchQuery(listOf(), arrayListOf())
                             }
                         }
@@ -140,11 +148,17 @@ class SearchAnimeFragment : Fragment() {
         return view
     }
 
+    //  En el onResume se desactiva la búsqueda por el motivo explicado más arriba.
     override fun onResume() {
         super.onResume()
         isSearchEnabled = false
     }
 
+    /**
+     * Lanzamiento de corutina en el hilo de Entrada/Salida para obtener los animes en base a los criterios establecidos, si se han establecido.
+     * @param sort          Lista con los criterios de ordenación [MediaSort]
+     * @param genresFilter  Lista con los géneros por los que se quiere filtrar en formato de texto.
+     */
     private fun launchSearchQuery(sort: List<MediaSort>, genresFilter: ArrayList<String>) = lifecycleScope.launch(Dispatchers.IO) {
         myAnimeList.clear()
         val search = txtSearch.text.trim().toString()
@@ -171,6 +185,9 @@ class SearchAnimeFragment : Fragment() {
         refreshRecyclerView()
     }
 
+    /**
+     * Actualiza el RecyclerView con los animes encontrados.
+     */
     private fun refreshRecyclerView() = lifecycleScope.launch(Dispatchers.Main) {
         rvSearchAnime.recycledViewPool.clear()
         val previousSize = animeMediaAdapter.itemCount
@@ -179,5 +196,4 @@ class SearchAnimeFragment : Fragment() {
         animeMediaAdapter.data.addAll(myAnimeList)
         animeMediaAdapter.notifyItemRangeInserted(0, animeMediaAdapter.itemCount)
     }
-
 }
