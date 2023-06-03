@@ -1,10 +1,17 @@
 package com.example.myanimection.utils
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import com.afollestad.materialdialogs.DialogCallback
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.input
+import com.example.myanimection.R
+import com.example.myanimection.controllers.FirestoreQueryCallback
+import com.example.myanimection.controllers.UserController
+import com.example.myanimection.utils.Utilities.USERNAME_REGEX
 
 object Notifications : Application() {
 
@@ -30,5 +37,6 @@ object Notifications : Application() {
             negativeButton(text = "NO", click = negativeButtonClickListener)
         }
     }
+
 
 }

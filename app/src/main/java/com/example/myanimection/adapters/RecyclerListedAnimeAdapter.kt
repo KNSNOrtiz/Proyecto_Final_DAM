@@ -28,28 +28,27 @@ import com.example.myanimection.models.AnimeCategory
 import com.example.myanimection.models.ListedAnimeMedia
 import com.example.myanimection.utils.Notifications
 import com.example.myanimection.utils.UI.hideKeyboard
-import com.example.myanimection.utils.Utilities
 import com.example.myanimection.views.AnimeDetailFragment
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 
-class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>): RecyclerView.Adapter<RecyclerListedAnimeAdapter.ViewHolder>() {
+class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>, private var uidSearch: String): RecyclerView.Adapter<RecyclerListedAnimeAdapter.ViewHolder>() {
 
-    interface CategoryChangedListener {
+    interface AnimeChangedListener {
         fun notifyRecyclerView()
     }
 
     private val userController = UserController()
 
-    var categoryChangedListener: CategoryChangedListener? = null
+    var animeChangedListener: AnimeChangedListener? = null
 
     //  Método que llama al método de la interfaz insertada desde ProfileAnimesFragment para refrescar la lista en cuanto la operación es exitosa.
     private val queryCallback = object: FirestoreQueryCallback {
         override fun onQueryComplete(success: Boolean) {
-            if (categoryChangedListener != null && success) {
+            if (animeChangedListener != null && success) {
                 Log.d("QUERY EXITO", success.toString())
-                categoryChangedListener!!.notifyRecyclerView()
+                animeChangedListener!!.notifyRecyclerView()
             } else{
                 Log.d("QUERY EXITO", success.toString())
             }
@@ -75,6 +74,7 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>): Recycl
             centerRadius = 30f
             start()
         }
+
         val request = ImageRequest.Builder(holder.itemView.context)
             .data(listedAnime.thumbnail)
             .placeholder(circularProgressDrawable)
@@ -93,7 +93,7 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>): Recycl
             holder.txtTotalEpisodes.text = "?"
         }
         holder.txtWatchedEpisodes.text = "${listedAnime.watchedEpisodes}"
-        if (listedAnime.category == AnimeCategory.COMPLETED) {
+        if (listedAnime.category == AnimeCategory.COMPLETED || Firebase.auth.currentUser!!.uid != uidSearch) {
             holder.txtWatchedEpisodes.inputType = InputType.TYPE_NULL
         }
         holder.txtWatchedEpisodes.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
@@ -106,13 +106,13 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>): Recycl
                         Notifications.alertDialogOK(holder.itemView.context, "Has visto todos los episodios", "¿Quieres marcar el anime como completado?",
                             positiveButtonClickListener = {
                                 listedAnime.category = AnimeCategory.COMPLETED
-                                userController.addAnimeToList(Firebase.auth.currentUser!!.uid, arrayListOf(listedAnime), queryCallback)
+                                userController.updateAnime(Firebase.auth.currentUser!!.uid, listedAnime, queryCallback)
                             },
                             negativeButtonClickListener = {
-                                userController.addAnimeToList(Firebase.auth.currentUser!!.uid, arrayListOf(listedAnime), queryCallback)
+                                userController.updateAnime(Firebase.auth.currentUser!!.uid, listedAnime, queryCallback)
                             })
                     } else {
-                        userController.addAnimeToList(Firebase.auth.currentUser!!.uid, arrayListOf(listedAnime), queryCallback)
+                        userController.addAnime(Firebase.auth.currentUser!!.uid, listedAnime, queryCallback)
                         Log.d("ANIME UPDATED", listedAnime.toString())
                     }
                 }
@@ -126,6 +126,14 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>): Recycl
         holder.cvListedAnime.setOnLongClickListener { v ->
             val popupMenu = PopupMenu(v.context, v)
             popupMenu.inflate(R.menu.menu_popup_listedanime)
+            val menu = popupMenu.menu
+            val itemEdit = menu.findItem(R.id.itemListedAnimeEdit)
+            val itemRemove = menu.findItem(R.id.itemListedAnimeRemove)
+
+            if (Firebase.auth.currentUser?.uid != uidSearch) {
+                itemEdit.isVisible = false
+                itemRemove.isVisible = false
+            }
             popupMenu.setOnMenuItemClickListener { menuItem ->
                 when(menuItem.itemId) {
                     R.id.itemListedAnimeDetails -> {
@@ -136,7 +144,7 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>): Recycl
                         val dialog = MaterialDialog(v.context)
                             .noAutoDismiss()
                             .customView(R.layout.dialog_add_anime)
-
+                            .title(text = "Editar Anime")
                         dialog.findViewById<ImageView>(R.id.imgAddAnimeImage).load(holder.imgListedAnime.drawable) {transformations(
                             CircleCropTransformation()
                         )}
@@ -162,13 +170,33 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>): Recycl
                                     }
                                 }
                                 dialogWatchedEpisodes.text = "$watchedEpisodes"
-                                userController.addAnimeToList(Firebase.auth.currentUser!!.uid, arrayListOf(
-                                    ListedAnimeMedia(listedAnime.id,
-                                        listedAnime.title,
-                                        listedAnime.thumbnail,
-                                        watchedEpisodes, listedAnime.totalEpisodes,
-                                        AnimeCategory.valueOf(dialogSpinner.selectedItem.toString()))),
-                                    queryCallback)
+                                userController.isAnimeListed(Firebase.auth.currentUser!!.uid, listedAnime.id, object: FirestoreQueryCallback {
+                                    override fun onQueryComplete(success: Boolean) {
+                                        if (!success) {
+                                            userController.addAnime(Firebase.auth.currentUser!!.uid,
+                                                ListedAnimeMedia(listedAnime.id,
+                                                    listedAnime.title,
+                                                    listedAnime.thumbnail,
+                                                    watchedEpisodes, listedAnime.totalEpisodes,
+                                                    AnimeCategory.valueOf(dialogSpinner.selectedItem.toString())),
+                                                queryCallback)
+                                        } else {
+                                            userController.updateAnime(Firebase.auth.currentUser!!.uid,
+                                                ListedAnimeMedia(listedAnime.id,
+                                                    listedAnime.title,
+                                                    listedAnime.thumbnail,
+                                                    watchedEpisodes, listedAnime.totalEpisodes,
+                                                    AnimeCategory.valueOf(dialogSpinner.selectedItem.toString())),
+                                                queryCallback)
+                                        }
+                                    }
+
+                                    override fun onQueryFailure(exception: Exception) {
+                                        Notifications.shortToast(v.context, "Hubo un error al recuperar el anime de la lista.")
+                                    }
+                                })
+
+
 
                             }
                             dialog.dismiss()
@@ -182,7 +210,14 @@ class RecyclerListedAnimeAdapter (var data: ArrayList<ListedAnimeMedia>): Recycl
                     }
                     R.id.itemListedAnimeRemove -> {
                         if (Firebase.auth.currentUser != null) {
-                            userController.removeAnime(Firebase.auth.currentUser!!.uid, arrayListOf(listedAnime), queryCallback)
+                            Notifications.alertDialogOK(v.context, "Eliminar anime", "¿Estás seguro de querer eliminarlo?",
+                            positiveButtonClickListener = { dialog ->
+                                userController.removeAnime(Firebase.auth.currentUser!!.uid, arrayListOf(listedAnime), queryCallback)
+                                dialog.dismiss()
+                            },
+                            negativeButtonClickListener = {dialog ->
+                                dialog.dismiss()
+                            })
                         }
                         true
                     }

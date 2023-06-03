@@ -16,7 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var navigationView: BottomNavigationView
+    lateinit var navigationView: BottomNavigationView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

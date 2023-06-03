@@ -1,4 +1,4 @@
-package com.example.myanimection
+package com.example.myanimection.views
 
 import android.os.Bundle
 import android.util.Log
@@ -13,22 +13,19 @@ import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.myanimection.R
 import com.example.myanimection.adapters.RecyclerListedAnimeAdapter
 import com.example.myanimection.controllers.UserController
 import com.example.myanimection.models.AnimeCategory
 import com.example.myanimection.models.ListedAnimeMedia
-import com.example.myanimection.utils.GridSpacingItemDecorator
-import com.example.myanimection.utils.Utilities
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import com.example.myanimection.utils.SpacingItemDecorator
 
-class ProfileAnimesFragment : Fragment() {
-
+class ProfileAnimesFragment(private val uidSearch: String) : Fragment() {
     private lateinit var spinListedAnimeCategories: Spinner
     private lateinit var rvListedAnimes: RecyclerView
     private lateinit var btnRefresh: ImageButton
     private var listedAnimes: ArrayList<ListedAnimeMedia> = arrayListOf()
-    private val listedAnimesAdapter = RecyclerListedAnimeAdapter(listedAnimes)
+    private val listedAnimesAdapter = RecyclerListedAnimeAdapter(listedAnimes, uidSearch)
     private val userController = UserController()
 
     override fun onCreateView(
@@ -41,15 +38,18 @@ class ProfileAnimesFragment : Fragment() {
         rvListedAnimes = view.findViewById(R.id.rvListedAnimes)
         btnRefresh = view.findViewById(R.id.btnListedAnimeRefresh)
         rvListedAnimes.layoutManager = LinearLayoutManager(context)
-        listedAnimesAdapter.categoryChangedListener = object : RecyclerListedAnimeAdapter.CategoryChangedListener {
+        listedAnimesAdapter.animeChangedListener = object : RecyclerListedAnimeAdapter.AnimeChangedListener {
             override fun notifyRecyclerView() {
                 refreshList()
             }
         }
         rvListedAnimes.adapter = listedAnimesAdapter
-        rvListedAnimes.addItemDecoration(GridSpacingItemDecorator(1, 20, false))
+        rvListedAnimes.addItemDecoration(SpacingItemDecorator(1, 20, false))
 
-        ArrayAdapter.createFromResource(view.context, R.array.listed_categories, R.layout.ani_spin_item).also { adapter ->
+        ArrayAdapter.createFromResource(view.context,
+            R.array.listed_categories,
+            R.layout.ani_spin_item
+        ).also { adapter ->
             adapter.setDropDownViewResource(R.layout.ani_spin_dropdown_item)
             spinListedAnimeCategories.adapter = adapter
         }
@@ -82,7 +82,7 @@ class ProfileAnimesFragment : Fragment() {
 
     fun refreshList() {
         val category = enumValueOf<AnimeCategory>(spinListedAnimeCategories.selectedItem.toString())
-        userController.getUserAnimes(Firebase.auth.currentUser!!.uid, category, object: UserController.FirestoreListedAnimesQueryCallback {
+        userController.getUserAnimes(uidSearch, category, object: UserController.ListedAnimeQueryCallback {
             override fun onQueryComplete(result: ArrayList<ListedAnimeMedia>) {
                 Log.d("Animes listados", "Animes listados")
                 rvListedAnimes.recycledViewPool.clear()

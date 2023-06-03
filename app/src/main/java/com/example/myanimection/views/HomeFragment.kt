@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
@@ -18,12 +19,9 @@ import com.apollographql.apollo3.api.Optional
 import com.example.myanimection.R
 import com.example.myanimection.adapters.RecyclerAnimeMediaAdapter
 import com.example.myanimection.controllers.AnimeMediaController
-import com.example.myanimection.controllers.UserController
 import com.example.myanimection.models.AnimeMedia
-import com.example.myanimection.models.ListedAnimeMedia
 import com.example.myanimection.repositories.AnimeMediaRepository
-import com.example.myanimection.utils.GridSpacingItemDecorator
-import com.google.firebase.auth.FirebaseAuth
+import com.example.myanimection.utils.SpacingItemDecorator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Math.abs
@@ -41,6 +39,8 @@ class HomeFragment : Fragment() {
     private lateinit var cardViewRV: CardView
     private lateinit var rvAnimeHome: RecyclerView
     private lateinit var txtCurrentPage: TextView
+    private lateinit var btnPrevious: ImageButton
+    private lateinit var btnNext: ImageButton
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
@@ -51,7 +51,31 @@ class HomeFragment : Fragment() {
         (activity as MainActivity).supportActionBar?.show()
         rvAnimeHome = view.findViewById(R.id.rvAnimeHome)
         cardViewRV = view.findViewById(R.id.cardViewRecycler)
-        rvAnimeHome.setOnTouchListener (object : View.OnTouchListener {
+        txtCurrentPage = view.findViewById(R.id.txtCurrentPageHome)
+
+        btnPrevious = view.findViewById(R.id.btnHomePrevious)
+        btnNext = view.findViewById(R.id.btnHomeNext)
+
+        btnPrevious.setOnClickListener {
+            if (currentPage > 1) {
+                currentPage--
+                animateCardView(cardViewRV.width.toFloat())
+            }
+        }
+        btnNext.setOnClickListener {
+            if (currentPage < totalPages) {
+                currentPage++
+                animateCardView(-cardViewRV.width.toFloat())
+            }
+        }
+
+
+        rvAnimeHome.addItemDecoration(SpacingItemDecorator(2, 30, false))
+        rvAnimeHome.adapter = rvAnimeHomeAnimeAdapter
+        rvAnimeHome.layoutManager = GridLayoutManager(context, 2)
+        rvAnimeHome.itemAnimator = null
+
+        rvAnimeHome.setOnTouchListener(object : View.OnTouchListener {
             private var downX = 0f
             private var downY = 0f
 
@@ -67,37 +91,28 @@ class HomeFragment : Fragment() {
                         val upY = event.y
                         val deltaX = downX - upX
                         val deltaY = downY - upY
-                        // Si el desplazamiento es mayor en el eje horizontal que en el vertical,
-                        // y la distancia recorrida es mayor que 50, se trata de un desplazamiento horizontal.
-                        if (abs(deltaX) > abs(deltaY) && abs(deltaX) > 50) {
+                        if (abs(deltaX) > abs(deltaY) && deltaY < 50 && abs(deltaX) >= 300) {
                             if (deltaX < 0) {
                                 // Desplazamiento hacia la derecha
-                                if (currentPage > 1){
+                                if (currentPage > 1) {
                                     currentPage--
                                     animateCardView(cardViewRV.width.toFloat())
                                 }
-
                             } else {
                                 // Desplazamiento hacia la izquierda
                                 if (currentPage < totalPages) {
-                                        currentPage++
-                                        animateCardView(-cardViewRV.width.toFloat())
+                                    currentPage++
+                                    animateCardView(-cardViewRV.width.toFloat())
                                 }
                             }
                             return true
                         }
-                        view.performClick()
+                        v.performClick()
                     }
                 }
                 return false
             }
         })
-        rvAnimeHome.addItemDecoration(GridSpacingItemDecorator(2, 30, false))
-        rvAnimeHome.adapter = rvAnimeHomeAnimeAdapter
-        rvAnimeHome.layoutManager = GridLayoutManager(context, 2)
-        rvAnimeHome.itemAnimator = null
-        txtCurrentPage = view.findViewById(R.id.txtCurrentPageHome)
-
 
         return view
     }
@@ -142,6 +157,8 @@ class HomeFragment : Fragment() {
         rvAnimeHomeAnimeAdapter.data.addAll(myAnimeList)
         rvAnimeHomeAnimeAdapter.notifyItemRangeInserted(0, rvAnimeHomeAnimeAdapter.itemCount)
         txtCurrentPage.text = "$currentPage / $totalPages"
+        btnNext.isEnabled = nextPage
+        btnPrevious.isEnabled = currentPage > 1
         Log.d("AnimeCount", "${rvAnimeHome.adapter?.itemCount}")
     }
 

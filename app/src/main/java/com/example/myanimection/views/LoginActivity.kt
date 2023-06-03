@@ -1,5 +1,6 @@
 package com.example.myanimection.views
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.text.method.PasswordTransformationMethod
@@ -11,11 +12,14 @@ import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.input
 import com.example.myanimection.R
 import com.example.myanimection.controllers.FirestoreQueryCallback
 import com.example.myanimection.controllers.UserController
 import com.example.myanimection.models.User
 import com.example.myanimection.utils.Notifications
+import com.example.myanimection.utils.Utilities
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -24,10 +28,12 @@ import com.google.firebase.auth.GoogleAuthProvider
 class LoginActivity : AppCompatActivity() {
 
     private val userController = UserController()
+    private lateinit var mainActivityIntent: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        mainActivityIntent = Intent(this, MainActivity::class.java)
 
         val resultGoogleLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -40,16 +46,25 @@ class LoginActivity : AppCompatActivity() {
                         FirebaseAuth.getInstance().signInWithCredential(credential)
                             .addOnCompleteListener {
                                 if (it.isSuccessful) {
+                                    val user = FirebaseAuth.getInstance().currentUser
                                     //  Comprobación de si es el primer inicio de sesión para darlo de alta en la BD. Se hace aquí
                                     //  para evitar hacer lecturas continuamente.
                                     val additionalInfo = it.result.additionalUserInfo
                                     if (additionalInfo != null) {
                                         if (additionalInfo.isNewUser) {
-                                            val user = FirebaseAuth.getInstance().currentUser
                                             userController.isUserRegistered(user!!.uid, object:FirestoreQueryCallback {
                                                 override fun onQueryComplete(success: Boolean) {
                                                     if (!success) {
-                                                        userController.addUser(User(user.uid, user.displayName!!, user.email!!, arrayListOf()))
+                                                        userController.addUser(User(user.uid, "", user.email!!, arrayListOf(), ""), object: FirestoreQueryCallback{
+                                                            override fun onQueryComplete(success: Boolean) {
+                                                                Notifications.shortToast(this@LoginActivity, "Registro completado.")
+                                                                checkUsername(user.uid)
+                                                            }
+                                                            override fun onQueryFailure(exception: Exception) {
+                                                                Notifications.shortToast(this@LoginActivity, "Hubo un error en el registro.")
+                                                                Log.e("LOGIN", exception.message.toString())
+                                                            }
+                                                        })
                                                     }
                                                 }
                                                 override fun onQueryFailure(exception: Exception) {
@@ -58,8 +73,19 @@ class LoginActivity : AppCompatActivity() {
                                             })
                                         }
                                     }
-                                    val intent = Intent(this, MainActivity::class.java)
-                                    startActivity(intent)
+                                    userController.getUserName(user!!.uid, object: UserController.StringQueryCallback {
+                                        override fun onQueryComplete(result: String) {
+                                            if (result.isNotEmpty()) {
+                                                startActivity(mainActivityIntent)
+                                            } else {
+                                                checkUsername(user.uid)
+                                            }
+                                        }
+                                        override fun onQueryFailure(exception: Exception) {
+                                            Notifications.shortToast(this@LoginActivity, "Error en el inicio de sesión.")
+                                            Log.e("LOGIN GOOGLE", exception.message.toString() )
+                                        }
+                                    })
                                 } else {
                                     Notifications.shortToast(
                                         this,
@@ -128,8 +154,7 @@ class LoginActivity : AppCompatActivity() {
                     val user = it.result.user
                     if (user != null){
                         if (user.isEmailVerified) {
-                            var intent = Intent(this, MainActivity::class.java)
-                            startActivity(intent)
+                            startActivity(mainActivityIntent)
                         } else{
                             Notifications.alertDialogOK(this, "Cuenta no verificada",
                                 "Por favor, verifica la cuenta mediante el enlace en tu email para poder iniciar sesión.")
@@ -149,9 +174,58 @@ class LoginActivity : AppCompatActivity() {
 
         val client = GoogleSignIn.getClient(this, conf)
         client.signOut()
-
         launcher.launch(client.signInIntent)
     }
+
+    //  Método que fuerza a los usuarios de Google a tener un nombre de usuario antes de poder iniciar sesión y acceder al resto de la aplicación.
+    @SuppressLint("CheckResult")
+    private fun checkUsername(uid: String) {
+        val context = this@LoginActivity
+        val mainActivityIntent = Intent(this, MainActivity::class.java)
+        MaterialDialog(context).show {
+            title(text = "Establecer nombre de usuario")
+            input(hint = "Nombre de usuario (5-15 caracteres)") { dialog, text ->
+                val userName = text.toString().trim()
+                if (userName.matches(Utilities.USERNAME_REGEX)) {
+                    userController.isUsernameTaken(userName, object: FirestoreQueryCallback {
+                        override fun onQueryComplete(success: Boolean) {
+                            if (success) {
+                                Notifications.shortToast(context, "Nombre de usuario no disponible."
+                                )
+                            } else {
+                                userController.setUsername(uid, userName, object: FirestoreQueryCallback {
+                                    override fun onQueryComplete(success: Boolean) {
+                                        if (success) {
+                                            dialog.dismiss()
+                                            Notifications.shortToast(context, "Bienvenido/a, $userName." )
+                                            startActivity(mainActivityIntent)
+                                        } else {
+                                            Notifications.shortToast(context, "Error al actualizar el usuario. Inténtalo de nuevo.")
+                                        }
+                                    }
+                                    override fun onQueryFailure(exception: Exception) {
+                                        Notifications.shortToast(context, "Error al actualizar el usuario. Inténtalo de nuevo."
+                                        )
+                                    }
+                                })
+                            }
+                        }
+                        override fun onQueryFailure(exception: Exception) {
+                            Notifications.shortToast(context, "No se pudo recuperar el usuario."
+                            )
+                        }
+                    })
+                } else {
+                    Notifications.shortToast(context, "Solo se permiten 5-15 caracteres alfanuméricos sin espacios.")
+                }
+            }
+            positiveButton(text = "Aceptar")
+            negativeButton(text = "Cancelar", click = { dialog ->
+                dialog.dismiss()
+            })
+        }
+    }
+
 
     private fun validateFields(email:String, password:String) : Boolean{
         if (email.isEmpty() || password.isEmpty()){

@@ -2,19 +2,21 @@ package com.example.myanimection.views
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.core.view.MenuProvider
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.Coil
 import coil.load
@@ -34,10 +36,11 @@ import com.example.myanimection.models.AnimeCategory
 import com.example.myanimection.models.AnimeMediaDetailed
 import com.example.myanimection.models.ListedAnimeMedia
 import com.example.myanimection.repositories.AnimeMediaRepository
-import com.example.myanimection.utils.GridSpacingItemDecorator
+import com.example.myanimection.utils.SpacingItemDecorator
 import com.example.myanimection.utils.Notifications
-import com.example.myanimection.utils.Utilities
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -70,8 +73,16 @@ class AnimeDetailFragment : Fragment() {
     private lateinit var txtEndDate: TextView
     private lateinit var txtEpisodes: TextView
     private lateinit var txtStatus: TextView
+    private lateinit var txtLabelCharacters: TextView
+    private lateinit var txtLabelStreamingEpisodes: TextView
+    private lateinit var cvCharacters: CardView
+    private lateinit var cvEpisodes: CardView
+    private lateinit var txtExpandCharacters: TextView
+    private lateinit var txtExpandEpisodes: TextView
     private lateinit var rvCharacters: RecyclerView
     private lateinit var rvEpisodes: RecyclerView
+    private lateinit var dividerCharacters: View
+    private lateinit var dividerEpisodes: View
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -90,14 +101,48 @@ class AnimeDetailFragment : Fragment() {
         txtEndDate = view.findViewById(R.id.txtAnimeDetailEndDate)
         txtEpisodes = view.findViewById(R.id.txtAnimeDetailEpisodes)
         txtStatus = view.findViewById(R.id.txtAnimeDetailStatus)
+
+        txtLabelCharacters = view.findViewById(R.id.labelCharacters)
+        txtLabelStreamingEpisodes = view.findViewById(R.id.labelStreamingEpisodes)
+        cvCharacters = view.findViewById(R.id.cvCharacters)
+        cvEpisodes = view.findViewById(R.id.cvEpisodes)
+        txtExpandCharacters = view.findViewById(R.id.txtExpandCharacters)
+        txtExpandEpisodes = view.findViewById(R.id.txtExpandEpisodes)
+        dividerCharacters = view.findViewById(R.id.dividerCharacters)
+        dividerEpisodes = view.findViewById(R.id.dividerEpisodes)
         rvCharacters = view.findViewById(R.id.rvAnimeDetailCharacters)
         rvCharacters.adapter = rvCharacterAdapter
-        rvCharacters.addItemDecoration(GridSpacingItemDecorator(3, 20, false))
+        rvCharacters.addItemDecoration(SpacingItemDecorator(3, 20, false))
         rvCharacters.layoutManager = GridLayoutManager(context, 3)
         rvEpisodes = view.findViewById(R.id.rvAnimeDetailEpisodes)
         rvEpisodes.adapter = rvEpisodesAdapter
-        rvEpisodes.addItemDecoration(GridSpacingItemDecorator(3, 20, false))
-        rvEpisodes.layoutManager = GridLayoutManager(context, 3)
+        rvEpisodes.addItemDecoration(SpacingItemDecorator(1, 10, false))
+        rvEpisodes.layoutManager = LinearLayoutManager(context)
+
+
+        txtExpandCharacters.setOnClickListener {
+            if  (rvCharacters.isVisible) {
+                txtExpandCharacters.text = "Expandir"
+                dividerCharacters.visibility = View.GONE
+                rvCharacters.visibility = View.GONE
+            } else {
+                txtExpandCharacters.text = "Contraer"
+                dividerCharacters.visibility = View.VISIBLE
+                rvCharacters.visibility = View.VISIBLE
+            }
+        }
+
+        txtExpandEpisodes.setOnClickListener {
+            if (rvEpisodes.isVisible) {
+                txtExpandEpisodes.text = "Expandir"
+                dividerEpisodes.visibility = View.GONE
+                rvEpisodes.visibility = View.GONE
+            } else {
+                txtExpandEpisodes.text = "Contraer"
+                dividerEpisodes.visibility = View.VISIBLE
+                rvEpisodes.visibility = View.VISIBLE
+            }
+        }
 
 
         launchSingleAnimeQuery()
@@ -125,6 +170,7 @@ class AnimeDetailFragment : Fragment() {
                        dialog = MaterialDialog(context!!)
                            .noAutoDismiss()
                            .customView(R.layout.dialog_add_anime)
+                           .title(text = "Añadir anime")
                        dialog.findViewById<ImageView>(R.id.imgAddAnimeImage).load(imgPortrait.drawable) {transformations(CircleCropTransformation())}
                        dialog.findViewById<TextView>(R.id.txtAddAnimeTitle).text = txtRomajiTitle.text
                        val dialogWatchedEpisodes = dialog.findViewById<TextView>(R.id.txtAddAnimeWatched).apply { text = "0" }
@@ -148,13 +194,41 @@ class AnimeDetailFragment : Fragment() {
                                    }
                                }
                                dialogWatchedEpisodes.text = "$watchedEpisodes"
-                               userController.addAnimeToList(currentUser.uid, arrayListOf(
-                                   ListedAnimeMedia(queriedAnime.id,
-                                       queriedAnime.romajiTitle!!,
-                                       queriedAnime.bannerImageURl!!,
-                                       watchedEpisodes, queriedAnime.episodes,
-                                       AnimeCategory.valueOf(dialogSpinner.selectedItem.toString()))),
-                                   queryCompleteCallback)
+                               userController.isAnimeListed(Firebase.auth.currentUser!!.uid, queriedAnime.id, object: FirestoreQueryCallback {
+                                   override fun onQueryComplete(success: Boolean) {
+                                       if (!success) {
+                                           userController.addAnime(
+                                               Firebase.auth.currentUser!!.uid,
+                                               ListedAnimeMedia(queriedAnime.id,
+                                                   queriedAnime.romajiTitle!!,
+                                                   queriedAnime.bannerImageURl!!,
+                                                   watchedEpisodes, queriedAnime.episodes,
+                                                   AnimeCategory.valueOf(dialogSpinner.selectedItem.toString())),
+                                               queryCompleteCallback)
+                                       } else {
+                                           Notifications.alertDialogOK(context!!, "Editar anime", "El anime ya está en tu lista. ¿Quieres actualizarlo?",
+                                           positiveButtonClickListener = { okDialog ->
+                                               userController.updateAnime(
+                                                   Firebase.auth.currentUser!!.uid,
+                                                   ListedAnimeMedia(queriedAnime.id,
+                                                       queriedAnime.romajiTitle!!,
+                                                       queriedAnime.bannerImageURl!!,
+                                                       watchedEpisodes, queriedAnime.episodes,
+                                                       AnimeCategory.valueOf(dialogSpinner.selectedItem.toString())),
+                                                   queryCompleteCallback)
+                                             okDialog.dismiss()
+                                           },
+                                           negativeButtonClickListener = { okDialog ->
+                                               okDialog.dismiss()
+                                           })
+
+                                       }
+                                   }
+
+                                   override fun onQueryFailure(exception: Exception) {
+                                       Notifications.shortToast(view!!.context, "Hubo un error al recuperar el anime de la lista.")
+                                   }
+                               })
                            }
                            dialog.dismiss()
                        }
@@ -174,7 +248,7 @@ class AnimeDetailFragment : Fragment() {
     }
 
     private fun launchSingleAnimeQuery() = lifecycleScope.launch (Dispatchers.IO) {
-        val animeMediaId = arguments?.getInt("animeId", 1) ?: 1     //  Ternaria para que en caso de no encontrar ningún parámetro por defecto sea 1.
+        val animeMediaId = arguments?.getInt("animeId", 1) ?: 1
         val response = animeMediaController.getSingleAnime(Optional.present(animeMediaId))
         if (response != null) {
             queriedAnime = response
@@ -191,12 +265,12 @@ class AnimeDetailFragment : Fragment() {
                 Coil.imageLoader(requireContext()).enqueue(request)
                 txtRomajiTitle.text = queriedAnime.romajiTitle
                 txtNativeTitle.text = queriedAnime.nativeTitle
-                txtDescription.text = queriedAnime.description?.replace(Regex("<br>"), "")
+                txtDescription.text = queriedAnime.description
                 var genres = ""
                 for (i in queriedAnime.genres!!.indices) {
-                    if (i != queriedAnime.genres!!.size-1) {
+                    if (i != queriedAnime.genres!!.size - 1) {
                         genres += queriedAnime.genres!![i] + ", "
-                    } else{
+                    } else {
                         genres += queriedAnime.genres!![i]
                     }
                 }
@@ -204,11 +278,21 @@ class AnimeDetailFragment : Fragment() {
                 txtGenres.text = genres
                 txtStartDate.text = queriedAnime.startDate
                 txtEndDate.text = queriedAnime.endDate
-                txtStatus.text = queriedAnime.status!!.name
-                txtEpisodes.text = if (queriedAnime.episodes != null) { queriedAnime.episodes.toString() } else { "?" }
+                txtStatus.text = queriedAnime.status
+                txtEpisodes.text = (queriedAnime.episodes ?: "Desconocido").toString()
                 rvCharacterAdapter.notifyDataSetChanged()
                 rvEpisodesAdapter.notifyDataSetChanged()
-        }
+
+                if (queriedAnime.characters.isEmpty()) {
+                    cvCharacters.visibility = View.GONE
+                    txtLabelCharacters.visibility = View.GONE
+                }
+
+                if (queriedAnime.streamingEpisode!!.isEmpty()) {
+                    cvEpisodes.visibility = View.GONE
+                    txtLabelStreamingEpisodes.visibility = View.GONE
+                }
+            }
         }
     }
 

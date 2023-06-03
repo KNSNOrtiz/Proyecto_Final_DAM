@@ -6,6 +6,8 @@ import com.example.myanimection.SearchAnimesQuery
 import com.example.myanimection.models.AnimeMapper
 import com.example.myanimection.models.AnimeMediaDetailed
 import com.example.myanimection.repositories.AnimeMediaRepository
+import com.example.myanimection.type.MediaSort
+import com.example.myanimection.type.MediaStatus
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -19,7 +21,10 @@ class AnimeMediaController(private val repository: AnimeMediaRepository) {
         var romaji = "Desconocido"
         var native = "Desconocido"
         var studio = "Desconocido"
-        var endDate = "No terminado"
+        var description = ""
+        var startDate = "Desconocido"
+        var endDate = "Desconocido"
+        var status = ""
         if (response != null) {
             if (response.title?.romaji != null) {
                 romaji = response.title.romaji
@@ -27,13 +32,29 @@ class AnimeMediaController(private val repository: AnimeMediaRepository) {
             if (response.title?.native != null) {
                 native = response.title.native
             }
-            if (response.studios?.nodes != null) {
+            if (response.studios?.nodes != null && response.studios.nodes.isNotEmpty()) {
                 studio = response.studios.nodes[0]?.name.toString()
             }
+            if (response.startDate != null) {
+                if (response.startDate.year != null && response.startDate.month != null && response.startDate.day != null) {
+                    startDate = "${response.startDate.day}/${response.startDate.month}/${response.startDate.year}"
+                }
+            }
             if (response.endDate != null) {
-                if (response.endDate.year != null && response.endDate.month != null|| response.endDate.day != null) {
+                if (response.endDate.year != null && response.endDate.month != null && response.endDate.day != null) {
                     endDate = "${response.endDate.day}/${response.endDate.month}/${response.endDate.year}"
                 }
+            }
+            if  (response.description != null) {
+                description = response.description.replace(Regex("<br>"), "")
+            }
+            status = when(response.status) {
+                MediaStatus.NOT_YET_RELEASED -> "Próximamente"
+                MediaStatus.HIATUS -> "Pausado"
+                MediaStatus.FINISHED -> "Finalizado"
+                MediaStatus.CANCELLED -> "Cancelado"
+                MediaStatus.RELEASING -> "En emisión"
+                else -> "Desconocido"
             }
 
         }
@@ -44,12 +65,12 @@ class AnimeMediaController(private val repository: AnimeMediaRepository) {
                 native,
                 response.coverImage?.large.toString(),
                 response.genres,
-                response.description,
+                description,
                 studio,
-                "${response.startDate?.day}/${response.startDate?.month}/${response.startDate?.year}",
+                startDate,
                 endDate,
                 response.episodes,
-                response.status,
+                status,
                 response.characters?.nodes?.map(animeMapper::ToCharacter)!!.toList(),
                 response.streamingEpisodes
                 )
@@ -69,11 +90,21 @@ class AnimeMediaController(private val repository: AnimeMediaRepository) {
         return response
     }
 
-    suspend fun getSearchAnimes(title: Optional<String>, genres: Optional<List<String>>): SearchAnimesQuery.Page? {
+    suspend fun getSearchAnimes(title: Optional<String>, genres: Optional<List<String>>, sort: Optional<List<MediaSort>>): SearchAnimesQuery.Page? {
         var response: SearchAnimesQuery.Page? = null
         coroutineScope {
             launch {
-                response = repository.searchAnime(title, genres).data?.Page
+                response = repository.searchAnime(title, genres, sort).data?.Page
+            }.join()
+        }
+        return response
+    }
+
+    suspend fun getAnimeTitle(id: Optional<Int?>): String? {
+        var response: String? = null
+        coroutineScope {
+            launch {
+                response = repository.animeTitle(id).data?.Media?.title?.romaji
             }.join()
         }
         return response

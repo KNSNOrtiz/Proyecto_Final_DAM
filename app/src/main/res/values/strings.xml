@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">My Animection</string>
     <string name="user_created">Usuario creado</string>
+    <string name="submit">Aceptar</string>
     <string name="title_activity_anime_detail">Vista detallada</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>

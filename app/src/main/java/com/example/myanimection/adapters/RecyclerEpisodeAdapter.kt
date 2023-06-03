@@ -2,11 +2,14 @@ package com.example.myanimection.adapters
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
@@ -40,7 +43,8 @@ class RecyclerEpisodeAdapter (var data: ArrayList<SingleAnimeQuery.StreamingEpis
             .build()
         Coil.imageLoader(holder.itemView.context).enqueue(request)
         holder.txtTitle.text = data[position].title
-        holder.itemView.setOnClickListener {
+        holder.layoutEpisode.setOnClickListener {
+            Log.d("CLICK", data[position].title!!)
             val httpIntent = Intent(Intent.ACTION_VIEW)
             httpIntent.data = Uri.parse(data[position].url)
             startActivity(holder.itemView.context, httpIntent, null)
@@ -53,10 +57,12 @@ class RecyclerEpisodeAdapter (var data: ArrayList<SingleAnimeQuery.StreamingEpis
     }
 
     class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+        val layoutEpisode: ConstraintLayout
         val imgThumbnail: ImageView
         val txtTitle: TextView
 
         init {
+            layoutEpisode = view.findViewById(R.id.layoutEpisode)
             imgThumbnail = view.findViewById(R.id.imgEpisodeThumbnail)
             txtTitle = view.findViewById(R.id.txtEpisodeName)
         }

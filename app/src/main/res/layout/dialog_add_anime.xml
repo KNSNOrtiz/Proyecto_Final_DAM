@@ -6,28 +6,16 @@
     android:layout_height="wrap_content"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/textView9"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Añadir Anime"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <ImageView
         android:id="@+id/imgAddAnimeImage"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:scaleType="fitCenter"
-        app:srcCompat="@drawable/ic_profile"
-        tools:srcCompat="@drawable/ic_profile"
-        app:layout_constraintTop_toBottomOf="@+id/textView9"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_profile"
+        tools:srcCompat="@drawable/ic_profile" />
 
     <TextView
         android:id="@+id/txtAddAnimeTitle"

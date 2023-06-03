@@ -1,7 +1,6 @@
 package com.example.myanimection.models
 
 import com.example.myanimection.SingleAnimeQuery
-import com.example.myanimection.type.MediaStatus
 
 data class AnimeMediaDetailed(
     val id: Int,
@@ -14,7 +13,7 @@ data class AnimeMediaDetailed(
     val startDate: String?,
     val endDate: String?,
     val episodes: Int?,
-    val status: MediaStatus?,
+    val status: String,
     val characters: List<AnimeCharacter>,
     val streamingEpisode: List<SingleAnimeQuery.StreamingEpisode?>?
 )

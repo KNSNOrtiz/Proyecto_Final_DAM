@@ -4,7 +4,7 @@ import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
-class GridSpacingItemDecorator(spanCount: Int, spacing: Int, includeEdge: Boolean): RecyclerView.ItemDecoration() {
+class SpacingItemDecorator(spanCount: Int, spacing: Int, includeEdge: Boolean): RecyclerView.ItemDecoration() {
 
     private val spanCount = spanCount
     private val spacing = spacing
